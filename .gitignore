@@ -1,0 +1,8 @@
+.vscode
+__pycache__
+*.jpg
+*.pth
+!pretrained_model.pth
+data/
+gym/
+traces/
