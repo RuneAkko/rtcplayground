@@ -1,3 +1,4 @@
+from gcc_twcc_estimator import GCC_TWCC_Estimator
 from utils.packetInfo import PacketInfo
 from utils.packetRecord import PacketRecord
 
@@ -10,6 +11,7 @@ class Esitimator(object):
 		self.pktsRecord.reset()
 		
 		self.lastInvokeState = "init"
+		self.gcc = GCC_TWCC_Estimator()
 	
 	def report_states(self, stats: dict):
 		"""
@@ -39,6 +41,8 @@ class Esitimator(object):
 		pktInfo.header_length = stats["header_length"]
 		pktInfo.payload_size = stats["payload_size"]
 		
+		pktInfo.size = stats["padding_length"] + stats["header_length"] + stats["payload_size"]
+		
 		pktInfo.bandwidth_prediction = self.predictionBandwidth
 		
 		self.pktsRecord.on_receive(pktInfo)
@@ -46,4 +50,16 @@ class Esitimator(object):
 	def get_estimated_bandwidth(self) -> int:
 		if self.lastInvokeState and self.lastInvokeState == "report_states":
 			self.lastInvokeState = "get_estimated_bandwidth"
+		else:
+			return self.predictionBandwidth
+		
+		assert self.pktsRecord.packet_num > 0
+		# 1. calculate state
+		
+		# 2. invoke gcc decision
+		self.gcc.pktRecord = self.pktsRecord
+		self.gcc.lastBwe = self.predictionBandwidth
+		bweBasedDelay = self.gcc.getEstimateBandwidthByDelay()
+		bweBasedLoss = self.gcc.getEstimateBandwidthByLoss()
+		self.predictionBandwidth = min(bweBasedLoss, bweBasedDelay)
 		return self.predictionBandwidth

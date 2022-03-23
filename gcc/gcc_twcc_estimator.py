@@ -1,14 +1,24 @@
+from utils.packetRecord import PacketRecord
+from loss_based_bwe import LoseBasedBwe
+from delay_based_bwe import DelayBasedBwe
+from arrival_filter import ArrivalFilter
+
 class GCC_TWCC_Estimator(object):
-	def __init__(self):
-		"""
-		pacing burst time interval
-		ms
-		一般认为一次 burst 发出的rtp pkg 就是一帧数据，属于一个 pkg group
-		"""
-		self.burstInterval = 5
+	def __init__(self, pktRecord: PacketRecord, lastBwe):
+		
+		self.pktRecord = pktRecord
+		self.lastBwe = lastBwe
+		self.rateLossController = LoseBasedBwe()
+		self.rateDelayController = DelayBasedBwe()
+		self.arrivalFilter = ArrivalFilter()
 	
-	def report_states(self, stats: dict):
-		pass
+	def getEstimateBandwidthByLoss(self) -> int:
+		# calculate pkt loss fraction in the interval
+		lossRate = self.pktRecord.calculate_loss_ratio()
+		return self.rateLossController.lossBasedBwe(lossRate, self.lastBwe)
 	
-	def get_estimated_bandwidth(self) -> int:
-		pass
+	def getEstimateBandwidthByDelay(self) -> int:
+		
+		# go to arrival filter
+
+		

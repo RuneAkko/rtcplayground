@@ -5,14 +5,11 @@ import numpy as np
 
 
 class PacketRecord:
-	# feature_interval can be modified
-	# ? what's the meaning of base delay arg?
 	def __init__(self, base_delay_ms=200):
 		self.base_delay_ms = base_delay_ms
 		"""
 		ms
 		decision-making interval
-		
 		"""
 		self.packet_num = 0
 		self.pkt_stats_list = []
@@ -31,17 +28,8 @@ class PacketRecord:
 		dict : ssrc-last sequence number
 		某 ssrc 的最新 seqNo
 		"""
-		self.firstPktTotDelay = None
-		"""
-		ms,
-		
-		
-		"""
+		self.firstPktTotDelay = None  # ms
 		self.min_seen_delay = self.base_delay_ms  # ms
-		"""
-		min of delay
-		
-		"""
 		self.last_interval_rtime = None
 		"""
 		ms, record the rtime of the last packet in last interval,
@@ -70,6 +58,7 @@ class PacketRecord:
 			"The incoming packets receive_timestamp disordered"
 		
 		# Calculate the loss count
+		# 与上一个 pkt 间的丢包数
 		loss_count = 0
 		if packet_info.ssrc in self.last_seqNo:
 			loss_count = max(0,

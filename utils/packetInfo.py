@@ -2,23 +2,25 @@
 # -*- coding: utf-8 -*-
 
 class PacketInfo:
-    def __init__(self):
-        self.payload_type = None
-        self.sequence_number = None  # int
-        self.send_timestamp = None  # int, ms ?? no rtp timestamp
-        self.ssrc = None  # int ssrc_id
-
-        self.receive_timestamp = None  # int, ms
-
-        self.padding_length = None  # int, B
-        self.header_length = None  # int, B
-        self.payload_size = None  # int, B
-
-        self.bandwidth_prediction = None  # int, bps
-
-    def __str__(self):
-        return (
-            f"receive_timestamp: {self.receive_timestamp}ms"
-            f", send_timestamp: {self.send_timestamp}ms"
-            f", payload_size: {self.payload_size}B"
-        )
+	def __init__(self):
+		self.payload_type = None
+		self.sequence_number = None  # int
+		self.send_timestamp = None  # int, ms ?? no rtp timestamp
+		self.ssrc = None  # int ssrc_id
+		
+		self.receive_timestamp = None  # int, ms
+		
+		self.padding_length = None  # int, B
+		self.header_length = None  # int, B
+		self.payload_size = None  # int, B
+		
+		self.bandwidth_prediction = None  # int, bps
+		
+		self.size = None  # int,B
+	
+	def __str__(self):
+		return (
+			f"receive_timestamp: {self.receive_timestamp}ms"
+			f", send_timestamp: {self.send_timestamp}ms"
+			f", payload_size: {self.payload_size}B"
+		)
