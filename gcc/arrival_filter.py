@@ -14,29 +14,38 @@ class ArrivalFilter:
 		"""
 		self.burstInterval = 5
 		self.pktGroups = []
-		self.pktsStates = []
+		self.pktsInfo = []
 		
 		self.firstGroupCompleteTime = None
 	
-	def process(self, pktsStates: List[PacketInfo]):
-		self.pktsStates = pktsStates
+	def process(self, pktsInfo: List[PacketInfo]):
+		self.pktsInfo = pktsInfo
 		self._divideGroup()
 		return self._measured_deltas()
+	
+	def getcurrentIntervalDuration(self):
+		return self.pktsInfo[0].send_timestamp - self.pktsInfo[-1].send_timestamp
 	
 	def getFirstGroupCompleteTime(self):
 		return self.firstGroupCompleteTime
 	
+	def getLastGroupCompleteTime(self):
+		return self.pktsInfo[-1].receive_timestamp
+	
+	def getGroupNum(self):
+		return len(self.pktGroups)
+	
 	def _divideGroup(self):
 		"""
 		将一个 interval 内的 pkgs 按 burst interval 分组
-		:param pktsStates:
+		:param pktsInfo:
 		:return:
 		"""
 		pkgGroupList = []
 		
-		nailTime = self.pktsStates[0].send_timestamp
-		temp = [self.pktsStates[0]]
-		for pkt in self.pktsStates[1:]:
+		nailTime = self.pktsInfo[0].send_timestamp
+		temp = [self.pktsInfo[0]]
+		for pkt in self.pktsInfo[1:]:
 			if pkt.send_timestamp - nailTime <= self.burstInterval:
 				temp.append(pkt)
 			else:

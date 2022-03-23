@@ -56,9 +56,11 @@ class Esitimator(object):
 		assert self.pktsRecord.packet_num > 0
 		# 1. calculate state
 		
-		# 2. invoke gcc decision
+		# 2. set up gcc
 		self.gcc.pktRecord = self.pktsRecord
 		self.gcc.lastBwe = self.predictionBandwidth
+		
+		# 3. invoke gcc decision
 		bweBasedDelay = self.gcc.getEstimateBandwidthByDelay()
 		bweBasedLoss = self.gcc.getEstimateBandwidthByLoss()
 		self.predictionBandwidth = min(bweBasedLoss, bweBasedDelay)

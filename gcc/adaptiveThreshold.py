@@ -1,6 +1,3 @@
-from utils.enumSignal import Signal
-
-
 class AdaptiveThreshold:
 	"""
 	initializes a new adaptiveThreshold with default
@@ -15,7 +12,5 @@ class AdaptiveThreshold:
 		self.GammaMax = max
 		self.comparedNums = 0  # gamma 与 estimate 比较次数
 	
-	def compare(self, estimate, deltaTime):
-		self.comparedNums += 1
-		if self.comparedNums < 2:
-			return Signal.NORMAL
+	def updateGamma(self):
+		pass

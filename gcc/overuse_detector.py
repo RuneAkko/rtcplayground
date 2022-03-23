@@ -1,28 +1,25 @@
 from utils.enumSignal import Signal
+from .adaptiveThreshold import AdaptiveThreshold
 
 
 class OveruseDetector:
 	def __init__(self):
-		self.thresholdGamma = 12.5  # ms, according to rfc
 		self.overuse_time_th = 10  # ms, at least time for trigger overuse signal
-		self.first_detect_overuse_time = None  #
-		self.KUp = 0.01  # gamma up rate
-		self.KDown = 0.00018  # gamma down rate
+		self.overuseDuration = 0  # ms,
 		self.lastSignal = Signal.NORMAL
+		self.adaptiveThreshold = AdaptiveThreshold()
 	
-	def overuseDetect(self, lastGroupArrivalTime, currentGroupArrivalTime, estimateM) -> Signal:
-		deltaTime = currentGroupArrivalTime - lastGroupArrivalTime
+	def overuseDetect(self, currentIntervalDuration, estimateDelayDuration, nowTime) -> Signal:
+		nailTime = currentIntervalDuration
 		
-		if estimateM > self.thresholdGamma:
-			if estimateM - self.thresholdGamma <= 15:
-				self.__updateGamma(deltaTime, self.KUp, estimateM)
-			
-			if self.first_detect_overuse_time is None:
-				self.first_detect_overuse_time = currentGroupArrivalTime  # ms, 当前时间
+		#
+		gamma = self.adaptiveThreshold.thresholdGamma
+		
+		# above condition
+		if estimateDelayDuration > gamma:
+			if estimateDelayDuration - gamma <= 15:
+				self.__updateGamma(deltaTime, self.KUp, estimateDelayDuration)
 			
 			if currentGroupArrivalTime - lastGroupArrivalTime >= self.overuse_time_th:
 				return Signal.OVER_USE
 			return Signal.NORMAL
-	
-	def __updateGamma(self, deltaTime, K, M):
-		self.thresholdGamma = self.thresholdGamma + deltaTime * K * (abs(M) - self.thresholdGamma)

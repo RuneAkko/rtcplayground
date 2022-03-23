@@ -1,7 +1,3 @@
-from utils.enumSignal import Signal
-from utils.enumState import State
-from .arrival_filter import ArrivalFilter
-
 class DelayBasedBwe:
 	def __init__(self):
 		self.decreaseFactor = 0.85
@@ -9,8 +5,6 @@ class DelayBasedBwe:
 		self.lastBwe = 0
 		self.recentlyRate = 0
 		self.state = None  # delay based rate controller system state
-		
-		
 
 # def increase(self) -> int:
 # 	self.state = State.INCREASE
@@ -59,6 +53,3 @@ class DelayBasedBwe:
 # 		self.hold()
 # 	if signal == Signal.UNDER_USE and self.state == State.DECREASE:
 # 		self.hold()
-
-	
-	def
