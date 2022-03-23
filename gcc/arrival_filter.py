@@ -14,8 +14,19 @@ class ArrivalFilter:
 		"""
 		self.burstInterval = 5
 		self.pktGroups = []
+		self.pktsStates = []
+		
+		self.firstGroupCompleteTime = None
 	
-	def _divideGroup(self, pktsStates: List[PacketInfo]):
+	def process(self, pktsStates: List[PacketInfo]):
+		self.pktsStates = pktsStates
+		self._divideGroup()
+		return self._measured_deltas()
+	
+	def getFirstGroupCompleteTime(self):
+		return self.firstGroupCompleteTime
+	
+	def _divideGroup(self):
 		"""
 		将一个 interval 内的 pkgs 按 burst interval 分组
 		:param pktsStates:
@@ -23,22 +34,23 @@ class ArrivalFilter:
 		"""
 		pkgGroupList = []
 		
-		nailTime = pktsStates[0].send_timestamp
-		temp = [pktsStates[0]]
-		for pkt in pktsStates[1:]:
+		nailTime = self.pktsStates[0].send_timestamp
+		temp = [self.pktsStates[0]]
+		for pkt in self.pktsStates[1:]:
 			if pkt.send_timestamp - nailTime <= self.burstInterval:
 				temp.append(pkt)
 			else:
 				pkgGroupList.append(PacketGroup(temp))
 				# 记录 第一个 group 的接受完成时刻
+				if self.firstGroupCompleteTime is None:
+					self.firstGroupCompleteTime = temp[-1].receive_timestamp
 				nailTime = pkt.send_timestamp
 				temp = [pkt]
 		self.pktGroups = pkgGroupList
 	
-	# return pkgGroupList
-	
 	def _measured_deltas(self) -> Tuple[list, list]:
 		delay_gradients = []
+		complete_times = []
 		for index in range(1, len(self.pktGroups)):
 			send_time_delta = self.pktGroups[index].send_time_list[-1] - self.pktGroups[index - 1].send_time_list[-1]
 			arrival_time_delta = self.pktGroups[index].arrival_time_list[-1] - \
@@ -46,4 +58,6 @@ class ArrivalFilter:
 			
 			delay_gradient = arrival_time_delta - send_time_delta
 			delay_gradients.append(delay_gradient)
-		return delay_gradients, []
+			
+			complete_times.append(self.pktGroups[index].complete_time)
+		return delay_gradients, complete_times

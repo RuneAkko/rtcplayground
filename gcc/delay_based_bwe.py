@@ -1,6 +1,6 @@
 from utils.enumSignal import Signal
 from utils.enumState import State
-
+from .arrival_filter import ArrivalFilter
 
 class DelayBasedBwe:
 	def __init__(self):
