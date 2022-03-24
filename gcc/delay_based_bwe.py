@@ -32,24 +32,3 @@ class DelayBasedBwe:
 #
 # 	self.lastBwe = lastBwe
 # 	self.recentlyRate = recentlyRate
-#
-# 	if signal == Signal.OVER_USE and self.state == State.HOLD:
-# 		self.decrease()
-# 	if signal == Signal.OVER_USE and self.state == State.INCREASE:
-# 		self.decrease()
-# 	if signal == Signal.OVER_USE and self.state == State.DECREASE:
-# 		self.decrease()
-#
-# 	if signal == Signal.NORMAL and self.state == State.HOLD:
-# 		self.increase()
-# 	if signal == Signal.NORMAL and self.state == State.INCREASE:
-# 		self.increase()
-# 	if signal == Signal.NORMAL and self.state == State.DECREASE:
-# 		self.hold()
-#
-# 	if signal == Signal.UNDER_USE and self.state == State.HOLD:
-# 		self.hold()
-# 	if signal == Signal.UNDER_USE and self.state == State.INCREASE:
-# 		self.hold()
-# 	if signal == Signal.UNDER_USE and self.state == State.DECREASE:
-# 		self.hold()

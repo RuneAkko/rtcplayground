@@ -35,6 +35,15 @@ class ArrivalFilter:
 	def getGroupNum(self):
 		return len(self.pktGroups)
 	
+	def getCurrentIntervalIncomingBytes(self) -> int:
+		_bytes = 0  # B
+		for ele in self.pktGroups:
+			_bytes += ele.pkg_group_size
+		return _bytes
+	
+	def getFirstPktReceiveTime(self):
+		return self.pktsInfo[0].receive_timestamp
+	
 	def _divideGroup(self):
 		"""
 		将一个 interval 内的 pkgs 按 burst interval 分组

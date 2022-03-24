@@ -3,6 +3,8 @@ from delay_based_bwe import DelayBasedBwe
 from loss_based_bwe import LoseBasedBwe
 from utils.packetRecord import PacketRecord
 from .overuse_detector import OveruseDetector
+from .rateController import RateController
+from .stateMachine import StateMachine
 from .trendline_filter import TrendLineFilter
 
 
@@ -22,7 +24,12 @@ class GCC_TWCC_Estimator(object):
 		self.rateDelayController = DelayBasedBwe()
 		self.arrivalFilter = ArrivalFilter()
 		self.overUseDetector = OveruseDetector()
+		self.stateMachine = StateMachine()
+		self.rateController = RateController()
 		self.now = None
+		
+		#
+		self.currentIntervalRate = 0
 	
 	def getEstimateBandwidthByLoss(self) -> int:
 		# calculate pkt loss fraction in the interval
@@ -58,3 +65,11 @@ class GCC_TWCC_Estimator(object):
 		self.overUseDetector.totalGroupNum = self.totalGroupNum
 		
 		s = OveruseDetector.overuseDetect(currentIntervalDuration, estimateDelayDuration, self.now)
+		
+		# state transition
+		state = self.stateMachine.transition(s)
+		
+		# aimd control rate
+		self.rateController.setCurrentRate(self.arrivalFilter.getCurrentIncomingBytes(),
+		                                   self.now - self.arrivalFilter.getFirstPktReceiveTime(), self.lastBwe)
+		rate = self.rateController(state)
