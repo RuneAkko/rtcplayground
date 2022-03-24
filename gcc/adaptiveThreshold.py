@@ -13,7 +13,10 @@ class AdaptiveThreshold:
 		self.KDown = down
 		self.GammaMin = min
 		self.GammaMax = max
-		self.comparedNums = 0  # gamma 与 estimate 比较次数
+		
+		self.lastUpdateTime = 0
+		self.nowTime = 0
+		self.maxDeltaTime = 100  # ms
 	
 	def compare(self, estimateDuration) -> Signal:
 		
@@ -23,8 +26,26 @@ class AdaptiveThreshold:
 		if estimateDuration < (-1) * self.thresholdGamma:
 			result = Signal.UNDER_USE
 		
-		self.updateGamma()
+		self.updateGamma(estimateDuration)
 		return result
 	
-	def updateGamma(self):
-		pass
+	def updateGamma(self, estimate):
+		if self.lastUpdateTime == 0:
+			self.lastUpdateTime = self.nowTime
+		
+		absEstimateDuration = abs(estimate)
+		if absEstimateDuration > self.thresholdGamma + 15:
+			self.lastUpdateTime = self.nowTime
+			return
+		
+		k = self.KUp
+		if absEstimateDuration < self.thresholdGamma:
+			k = self.KDown
+		
+		deltaTime = min(self.nowTime - self.lastUpdateTime, self.maxDeltaTime)
+		self.thresholdGamma += k * deltaTime * (absEstimateDuration - self.thresholdGamma)
+		
+		self.thresholdGamma = max(self.thresholdGamma, self.GammaMin)
+		self.thresholdGamma = min(self.thresholdGamma, self.GammaMax)
+		
+		self.lastUpdateTime = self.nowTime

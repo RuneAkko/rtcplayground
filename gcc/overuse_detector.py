@@ -21,6 +21,7 @@ class OveruseDetector:
 			self.lastSignal = Signal.NORMAL
 			return Signal.NORMAL
 		
+		self.adaptiveThreshold.nowTime = nowTime
 		nowSignal = self.adaptiveThreshold.compare(estimateDelayDuration)
 		
 		finalSignal = None

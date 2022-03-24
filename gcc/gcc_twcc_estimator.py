@@ -57,6 +57,4 @@ class GCC_TWCC_Estimator(object):
 		self.totalGroupNum += self.arrivalFilter.getGroupNum()
 		self.overUseDetector.totalGroupNum = self.totalGroupNum
 		
-		OveruseDetector.overuseDetect(currentIntervalDuration, estimateDelayDuration, self.now)
-
-# overuse detector
+		s = OveruseDetector.overuseDetect(currentIntervalDuration, estimateDelayDuration, self.now)
