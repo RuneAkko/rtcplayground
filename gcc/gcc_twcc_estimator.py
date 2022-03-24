@@ -11,7 +11,14 @@ class GCC_TWCC_Estimator(object):
 		self.pktRecord = pktRecord
 		self.lastBwe = lastBwe
 		self.minGroupNum = 60  # up-bound group num
+		
+		#
+		self.totalGroupNum = 0
+		
+		#
 		self.rateLossController = LoseBasedBwe()
+		
+		#
 		self.rateDelayController = DelayBasedBwe()
 		self.arrivalFilter = ArrivalFilter()
 		self.overUseDetector = OveruseDetector()
@@ -31,18 +38,24 @@ class GCC_TWCC_Estimator(object):
 		
 		# set filter
 		tlf = TrendLineFilter(self.arrivalFilter.getFirstGroupCompleteTime())
+		
+		# return has multi threshold gain
 		trendLineEstimated = tlf.updateTrendLine(delta_ms, group_complete_time)
 		
 		# gradient 没变化，带宽估计不变
 		if trendLineEstimated == 0:
 			return self.lastBwe
 		
-		# 估计时延：估计delay斜率*单位时间数
+		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
 		#
 		estimateDelayDuration = trendLineEstimated * min(self.arrivalFilter.getGroupNum(), self.minGroupNum)
 		
-		# 从本 interval 第一个包发出到最后一个包发出的时间
+		# 从本 interval 第一个包发出，到最后一个包发出的时间
 		currentIntervalDuration = self.arrivalFilter.getcurrentIntervalDuration()
+		
+		# 开始 over detect
+		self.totalGroupNum += self.arrivalFilter.getGroupNum()
+		self.overUseDetector.totalGroupNum = self.totalGroupNum
 		
 		OveruseDetector.overuseDetect(currentIntervalDuration, estimateDelayDuration, self.now)
 
