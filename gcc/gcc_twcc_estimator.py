@@ -4,6 +4,8 @@ from loss_based_bwe import LoseBasedBwe
 from utils.packetRecord import PacketRecord
 from .overuse_detector import OveruseDetector
 from .rateController import RateController
+from .realRateCalculator import RealRateCalculator
+from .rttEstimator import RttEstimator
 from .stateMachine import StateMachine
 from .trendline_filter import TrendLineFilter
 
@@ -26,6 +28,8 @@ class GCC_TWCC_Estimator(object):
 		self.overUseDetector = OveruseDetector()
 		self.stateMachine = StateMachine()
 		self.rateController = RateController()
+		self.realRateCalculator = RealRateCalculator()
+		self.rttEstimator = RttEstimator()
 		self.now = None
 		
 		#
@@ -70,6 +74,6 @@ class GCC_TWCC_Estimator(object):
 		state = self.stateMachine.transition(s)
 		
 		# aimd control rate
-		self.rateController.setCurrentRate(self.arrivalFilter.getCurrentIncomingBytes(),
-		                                   self.now - self.arrivalFilter.getFirstPktReceiveTime(), self.lastBwe)
-		rate = self.rateController(state)
+		
+		rate = self.rateController.aimdControl(state, self.realRateCalculator.rateHat, self.now, None,
+		                                       self.rttEstimator.rtt)

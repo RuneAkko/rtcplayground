@@ -46,6 +46,8 @@ class Esitimator(object):
 		pktInfo.bandwidth_prediction = self.predictionBandwidth
 		
 		self.pktsRecord.on_receive(pktInfo)
+		self.gcc.realRateCalculator.onReceive(pktInfo)
+		self.gcc.rttEstimator.calRTT(pktInfo)
 	
 	def get_estimated_bandwidth(self) -> int:
 		if self.lastInvokeState and self.lastInvokeState == "report_states":
