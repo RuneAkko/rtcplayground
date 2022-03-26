@@ -20,7 +20,11 @@ class RateController:
 		# self.maxRate = 0
 		# self.minRate = 0
 		self.lastTargetRate = 0
-		self.lastRTT
+		self.lastRateUpdateTime = 0
+		self.nowTime = 0
+		
+		self.decreaseFactor = 0.85
+		self.increaseFactor = 1.05
 	
 	def _updateRateHatAverageWithEMA(self, measureRate):
 		alpha = 0.95
@@ -36,16 +40,16 @@ class RateController:
 			self.rateAverageVar = (1 - alpha) * (self.rateAverageVar + alpha * x * x)
 			self.rateAverageStd = math.sqrt(self.rateAverageVar)
 	
-	def expectedPktSizeBits(self)->int:
+	def expectedPktSizeBits(self) -> int:
 		# 假设每秒30帧
 		bitsPerFrame = self.lastTargetRate / 30
 		#
-		pktsPerFrame = math.ceil(bitsPerFrame/(1200*8))
+		pktsPerFrame = math.ceil(bitsPerFrame / (1200 * 8))
 		#
 		avgPktSizeBits = bitsPerFrame / pktsPerFrame
 		return avgPktSizeBits
 	
-	def aimdControl(self, state: State, rateHat, nowTime, firstPktArrivalTime,rtt):
+	def aimdControl(self, state: State, rateHat, nowTime, firstPktArrivalTime, rtt) -> int:
 		"""
 		
 		:param rtt:
@@ -58,25 +62,35 @@ class RateController:
 		self._updateRateHatAverageWithEMA(rateHat)
 		self.rateHat = rateHat
 		self.lastRTT = rtt
+		self.nowTime = nowTime
 		
 		if state == State.INCREASE:
-			self.increase()
+			return self.increase()
+		elif state == State.DECREASE:
+			return self.decrease()
+		else:
+			return self.lastTargetRate
 	
 	def increase(self) -> int:
 		
 		if self.rateAverage > 0 and (self.rateAverage - 3 * self.rateAverageStd) <= self.rateHat <= (
 				self.rateAverage + 3 * self.rateAverageStd):
-	# additive scheme
-		responseTime = 100 + self.lastRTT
+			# additive scheme
+			responseTime = 100 + self.lastRTT
+			alpha = 0.5 * min(1, self.lastRateUpdateTime / responseTime)
+			self.lastTargetRate = self.lastTargetRate + max(1000, alpha * self.expectedPktSizeBits())
+			self.lastRateUpdateTime = self.nowTime
+			return self.lastTargetRate
+		eta = self.increaseFactor ** min(self.lastRateUpdateTime / 1000, 1)
+		self.lastTargetRate = eta * self.lastTargetRate
 		
-		self.lastTargetRate = self.lastTargetRate + max(1000,)
-			
-	
+		if self.lastTargetRate > 1.5 * self.rateHat:
+			self.lastTargetRate = 1.5 * self.rateHat
 		
-		
-		
-		
-		
+		self.lastRateUpdateTime = self.nowTime
+		return self.lastTargetRate
 	
 	def decrease(self) -> int:
-		pass
+		self.lastTargetRate = self.decreaseFactor * self.rateHat
+		self.lastRateUpdateTime = self.nowTime
+		return self.lastTargetRate
