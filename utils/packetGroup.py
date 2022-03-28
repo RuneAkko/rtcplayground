@@ -1,13 +1,13 @@
 from typing import List
 
-from utils.packetInfo import PacketInfo
+from utils.info import pktInfo
 
 
 class PacketGroup:
-	def __init__(self, pkg_group: List[PacketInfo]):
+	def __init__(self, pkg_group: List[pktInfo]):
 		self.pkts = pkg_group
-		self.arrival_time_list = [pkt.receive_timestamp for pkt in pkg_group]
-		self.send_time_list = [pkt.send_timestamp for pkt in pkg_group]
+		self.arrival_time_list = [pkt.receive_timestamp_ms for pkt in pkg_group]
+		self.send_time_list = [pkt.send_timestamp_ms for pkt in pkg_group]
 		self.pkg_group_size = sum([pkt.size for pkt in pkg_group])
 		self.pkt_num_in_group = len(pkg_group)
 		

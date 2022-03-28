@@ -1,8 +1,8 @@
 from typing import List
 from typing import Tuple
 
+from utils.info import pktInfo
 from utils.packetGroup import PacketGroup
-from utils.packetInfo import PacketInfo
 
 
 class ArrivalFilter:
@@ -18,19 +18,19 @@ class ArrivalFilter:
 		
 		self.firstGroupCompleteTime = None
 	
-	def process(self, pktsInfo: List[PacketInfo]):
+	def process(self, pktsInfo: List[pktInfo]):
 		self.pktsInfo = pktsInfo
 		self._divideGroup()
 		return self._measured_deltas()
 	
 	def getcurrentIntervalDuration(self):
-		return self.pktsInfo[0].send_timestamp - self.pktsInfo[-1].send_timestamp
+		return self.pktsInfo[0].send_timestamp_ms - self.pktsInfo[-1].send_timestamp_ms
 	
 	def getFirstGroupCompleteTime(self):
 		return self.firstGroupCompleteTime
 	
 	def getLastGroupCompleteTime(self):
-		return self.pktsInfo[-1].receive_timestamp
+		return self.pktsInfo[-1].receive_timestamp_ms
 	
 	def getGroupNum(self):
 		return len(self.pktGroups)
@@ -42,7 +42,7 @@ class ArrivalFilter:
 		return _bytes
 	
 	def getFirstPktReceiveTime(self):
-		return self.pktsInfo[0].receive_timestamp
+		return self.pktsInfo[0].receive_timestamp_ms
 	
 	def _divideGroup(self):
 		"""
@@ -52,17 +52,17 @@ class ArrivalFilter:
 		"""
 		pkgGroupList = []
 		
-		nailTime = self.pktsInfo[0].send_timestamp
+		nailTime = self.pktsInfo[0].send_timestamp_ms
 		temp = [self.pktsInfo[0]]
 		for pkt in self.pktsInfo[1:]:
-			if pkt.send_timestamp - nailTime <= self.burstInterval:
+			if pkt.send_timestamp_ms - nailTime <= self.burstInterval:
 				temp.append(pkt)
 			else:
 				pkgGroupList.append(PacketGroup(temp))
 				# 记录 第一个 group 的接受完成时刻
 				if self.firstGroupCompleteTime is None:
-					self.firstGroupCompleteTime = temp[-1].receive_timestamp
-				nailTime = pkt.send_timestamp
+					self.firstGroupCompleteTime = temp[-1].receive_timestamp_ms
+				nailTime = pkt.send_timestamp_ms
 				temp = [pkt]
 		self.pktGroups = pkgGroupList
 	

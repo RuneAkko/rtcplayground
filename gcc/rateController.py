@@ -1,14 +1,12 @@
 import math
 
-from utils.enumState import State
+from utils.myEnum import State
 
 
 class RateController:
 	def __init__(self):
 		"""
-		另外的实现里，使用如下参数，待探究：
-		#define k_initial_rate_wnd_ms 500
-		#define k_rate_wnd_ms 150
+
 		"""
 		self.lastRTT = None
 		self.rateHat = 0  #
