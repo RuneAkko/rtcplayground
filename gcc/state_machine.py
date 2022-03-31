@@ -1,6 +1,6 @@
-from utils.enumSignal import Signal
+from utils.my_enum import Signal
 
-from utils.myEnum import State
+from utils.my_enum import State
 
 
 class StateMachine:

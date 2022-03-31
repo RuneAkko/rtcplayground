@@ -1,4 +1,4 @@
-from utils.enumSignal import Signal
+from utils.my_enum import Signal
 
 
 class AdaptiveThreshold:

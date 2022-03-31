@@ -16,6 +16,7 @@ class pktInfo:
 		
 		self.delay = None  # ms
 		self.loss_count = None  # int, 与前一个包之间的丢包个数
+		self.rtt = 0  # ms,
 # def __str__(self):
 # 	return (
 # 		f"receive_timestamp: {self.receive_timestamp_ms}ms"

@@ -1,6 +1,6 @@
 import math
 
-from utils.myEnum import State
+from utils.my_enum import State
 
 
 class RateController:
@@ -38,7 +38,7 @@ class RateController:
 			self.rateAverageVar = (1 - alpha) * (self.rateAverageVar + alpha * x * x)
 			self.rateAverageStd = math.sqrt(self.rateAverageVar)
 	
-	def expectedPktSizeBits(self) -> int:
+	def expectedPktSizeBits(self) -> float:
 		# 假设每秒30帧
 		bitsPerFrame = self.lastTargetRate / 30
 		#
@@ -47,12 +47,11 @@ class RateController:
 		avgPktSizeBits = bitsPerFrame / pktsPerFrame
 		return avgPktSizeBits
 	
-	def aimdControl(self, state: State, rateHat, nowTime, firstPktArrivalTime, rtt) -> int:
+	def aimdControl(self, state: State, rateHat, nowTime, rtt) -> float:
 		"""
 		
 		:param rtt:
 		:param rateHat: bits per second
-		:param firstPktArrivalTime:
 		:param nowTime: ms
 		:param state:
 		:return:
@@ -69,14 +68,14 @@ class RateController:
 		else:
 			return self.lastTargetRate
 	
-	def increase(self) -> int:
+	def increase(self) -> float:
 		
 		if self.rateAverage > 0 and (self.rateAverage - 3 * self.rateAverageStd) <= self.rateHat <= (
 				self.rateAverage + 3 * self.rateAverageStd):
 			# additive scheme
 			responseTime = 100 + self.lastRTT
 			alpha = 0.5 * min(1, self.lastRateUpdateTime / responseTime)
-			self.lastTargetRate = self.lastTargetRate + max(1000, alpha * self.expectedPktSizeBits())
+			self.lastTargetRate = self.lastTargetRate + max(1000.0, alpha * self.expectedPktSizeBits())
 			self.lastRateUpdateTime = self.nowTime
 			return self.lastTargetRate
 		eta = self.increaseFactor ** min(self.lastRateUpdateTime / 1000, 1)
@@ -88,7 +87,7 @@ class RateController:
 		self.lastRateUpdateTime = self.nowTime
 		return self.lastTargetRate
 	
-	def decrease(self) -> int:
+	def decrease(self) -> float:
 		self.lastTargetRate = self.decreaseFactor * self.rateHat
 		self.lastRateUpdateTime = self.nowTime
 		return self.lastTargetRate

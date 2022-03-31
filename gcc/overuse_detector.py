@@ -1,5 +1,5 @@
-from utils.enumSignal import Signal
-from .adaptiveThreshold import AdaptiveThreshold
+from utils.my_enum import Signal
+from .adaptive_threshold import AdaptiveThreshold
 
 
 class OveruseDetector:
@@ -11,17 +11,20 @@ class OveruseDetector:
 		self.overuseContinueCounter = 0
 		self.lastEstimateDelayDuration = 0
 		self.adaptiveThreshold = AdaptiveThreshold()
-		
+		self.lastUpdate = 0
 		self.totalGroupNum = 0
 	
-	def overuseDetect(self, currentIntervalDuration, estimateDelayDuration, nowTime) -> Signal:
+	def detect(self, estimateDelayDuration, nowTime) -> Signal:
 		
 		# 2*burst interval 内 start up
 		if self.totalGroupNum < 2:
 			self.lastSignal = Signal.NORMAL
 			return Signal.NORMAL
 		
+		currentIntervalDuration = nowTime - self.lastUpdate
+		self.lastUpdate = nowTime
 		self.adaptiveThreshold.nowTime = nowTime
+		
 		nowSignal = self.adaptiveThreshold.compare(estimateDelayDuration)
 		
 		finalSignal = None

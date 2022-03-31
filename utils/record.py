@@ -71,10 +71,11 @@ class pktRecord:
 		self.pkts.append(packet_info)
 		self.packet_num += 1
 	
-	def _get_result_list(self, interval, key):
+	def _get_result_list(self, length, key):
 		"""
-		获取过去 interval 内的 pktInfo list 字段
-		:param interval:
+		获取过去 length 内的 pktInfo list 字段;
+		如果 length 未指定，那么就获取过去整个 interval;
+		:param length:
 		:param key:
 		:return:
 		"""
@@ -82,10 +83,10 @@ class pktRecord:
 			return []
 		
 		result_list = []
-		if interval == 0:
-			interval = self.pkts[-1].receive_timestamp_ms - \
-			           self.last_interval_recv_time
-		start_time = self.pkts[-1].receive_timestamp_ms - interval
+		if length == 0:
+			length = self.pkts[-1].receive_timestamp_ms - \
+			         self.last_interval_recv_time
+		start_time = self.pkts[-1].receive_timestamp_ms - length
 		index = self.packet_num - 1
 		while index >= 0 and self.pkts[index].receive_timestamp_ms > start_time:
 			result_list.append(getattr(self.pkts[index], key))
@@ -111,7 +112,7 @@ class pktRecord:
 		The unit of return value: packet/packet
 		"""
 		loss_list = self._get_result_list(interval=interval, key='loss_count')
-		if loss_list:
+		if len(loss_list) != 0:
 			loss_num = np.sum(loss_list)
 			received_num = len(loss_list)
 			return loss_num / (loss_num + received_num)

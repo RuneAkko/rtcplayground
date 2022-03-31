@@ -18,7 +18,7 @@ class rateCalculator:
 		self.sumBytes = 0  # B
 		self.history = []  # list of tmpPkts
 	
-	def onReceive(self, pkt: pktInfo):
+	def update(self, pkt: pktInfo):
 		tmpPkt = {
 			"size": pkt.size,
 			"arrival": pkt.receive_timestamp_ms,

@@ -1,6 +1,6 @@
 from gcc_twcc_estimator import GCC
 from utils.info import pktInfo
-from utils.myEnum import interfaceState
+from utils.my_enum import interfaceState
 from utils.record import pktRecord
 
 InitialBWE = 300 * 1000  # 300kbps,初始带宽
@@ -14,7 +14,7 @@ class mainEstimator(object):
 		
 		self.state = interfaceState.INIT
 		
-		self.gcc = GCC()
+		self.gcc = GCC(InitialBWE)
 		
 		self.predictionBandwidth = InitialBWE  # last interval value or initial value, bps, int
 	
@@ -75,7 +75,7 @@ class mainEstimator(object):
 		# todo: 确认是否应该给包加上假设的 base delay
 		self.pktsRecord.on_receive(pkt_info)
 		
-		self.gcc.rateCalculator.onReceive(pkt_info)
+		self.gcc.rateCalculator.update(pkt_info)
 		
 		self.gcc.rttCalculator.simpleRtt(pkt_info)
 	
@@ -87,7 +87,7 @@ class mainEstimator(object):
 		
 		assert self.pktsRecord.packet_num > 0
 		
-		self.gcc.record = self.pktsRecord
+		self.gcc.setIntervalState(self.pktsRecord)
 		
 		self.predictionBandwidth = self.gcc.getEstimateBandwidth()
 		
