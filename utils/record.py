@@ -125,11 +125,11 @@ class pktRecord:
 		interval=0 means based on the whole packets
 		The unit of return value: bps
 		"""
-		received_size_list = self._get_result_list(length=interval, key='payload_byte')
+		received_size_list = self._get_result_list(length=interval, key='payload_size')
 		if received_size_list:
 			received_nbytes = np.sum(received_size_list)
 			if interval == 0:
-				interval = self.pkts[-1]['timestamp'] - \
+				interval = getattr(self.pkts[-1],'timestamp') - \
 				           self.last_interval_recv_time
 			return received_nbytes * 8 / interval * 1000
 		else:
@@ -140,6 +140,6 @@ class pktRecord:
 		The unit of return value: bps
 		"""
 		if self.packet_num > 0:
-			return self.pkts[-1]['bandwidth_prediction_bps']
+			return getattr(self.pkts[-1],'bandwidth_prediction_bps')
 		else:
 			return 0
