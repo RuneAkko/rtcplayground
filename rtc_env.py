@@ -8,12 +8,15 @@ import sys
 
 import numpy as np
 
+from gcc.main_estimator import mainEstimator
 from gym import spaces
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "gym"))
 import alphartc_gym
-from alphartc_gym.utils.packet_info import PacketInfo
-from alphartc_gym.utils.packet_record import PacketRecord
+
+# from alphartc_gym.utils.packet_info import PacketInfo
+# from alphartc_gym.utils.pktsRecord import PacketRecord
+
 
 UNIT_M = 1000000
 MAX_BANDWIDTH_MBPS = 8
@@ -47,47 +50,66 @@ class GymEnv:
 			low=np.array([0.0, 0.0, 0.0, 0.0]),
 			high=np.array([1.0, 1.0, 1.0, 1.0]),
 			dtype=np.float64)
+		self.ruleEstimator = mainEstimator()
 	
+	# 用于 drl training
+	# 重置rtc模拟环境、带宽估计器
+	# 随机选择trace
 	def reset(self):
 		self.gym_env = alphartc_gym.Gym()
 		self.gym_env.reset(trace_path=random.choice(self.trace_set),
 		                   report_interval_ms=self.step_time,
 		                   duration_time_ms=0)
-		self.packet_record = PacketRecord()
-		self.packet_record.reset()
+		self.ruleEstimator = mainEstimator()
+		
 		return [0.0, 0.0, 0.0, 0.0]
 	
+	# 规则算法测试
+	def set(self, testTrace):
+		self.gym_env = alphartc_gym.Gym()
+		self.gym_env.reset(trace_path=testTrace,
+		                   report_interval_ms=self.step_time,
+		                   duration_time_ms=0)
+		self.ruleEstimator = mainEstimator()
+	
+	# 模拟器返回网络情况
+	def test(self, targetRate):
+		# action: log to linear
+		bandwidth_prediction = log_to_linear(targetRate)
+		
+		packet_list, done = self.gym_env.step(bandwidth_prediction)
+		
+		for pkt in packet_list:
+			self.ruleEstimator.report_states(pkt)
+		
+		targetRate = self.ruleEstimator.get_estimated_bandwidth()
+		qos = self.calculateNetQos()
+		
+		return targetRate, done, list(qos)
+	
+	def calculateNetQos(self):
+		recv_rate = self.ruleEstimator.pktsRecord.calculate_receiving_rate(interval=self.step_time)
+		delay = self.ruleEstimator.pktsRecord.calculate_average_delay(interval=self.step_time)
+		loss = self.ruleEstimator.pktsRecord.calculate_loss_ratio(interval=self.step_time)
+		gccBwe = self.ruleEstimator.pktsRecord.calculate_latest_prediction()
+		return recv_rate, delay, loss, gccBwe
+	
+	# 用于强化学习执行 action，返回 reward
 	def step(self, action):
 		# action: log to linear
 		bandwidth_prediction = log_to_linear(action)
 		
-		# run the action
+		# 模拟器返回网络情况
 		packet_list, done = self.gym_env.step(bandwidth_prediction)
+		
 		for pkt in packet_list:
-			packet_info = PacketInfo()
-			packet_info.payload_type = pkt["payload_type"]
-			packet_info.ssrc = pkt["ssrc"]
-			packet_info.sequence_number = pkt["sequence_number"]
-			packet_info.send_timestamp_ms = pkt["send_time_ms"]
-			packet_info.receive_timestamp_ms = pkt["arrival_time_ms"]
-			packet_info.padding_length = pkt["padding_length"]
-			packet_info.header_length = pkt["header_length"]
-			packet_info.payload_size = pkt["payload_size"]
-			packet_info.bandwidth_prediction_bps = bandwidth_prediction
-			self.packet_record.on_receive(packet_info)
+			self.ruleEstimator.report_states(pkt)
+		
+		receiving_rate, delay, loss_ratio, latest_prediction = self.calculateNetQos()
 		
 		# calculate state
-		states = []
-		receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
-		states.append(liner_to_log(receiving_rate))
-		delay = self.packet_record.calculate_average_delay(interval=self.step_time)
-		states.append(min(delay / 1000, 1))
-		loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
-		states.append(loss_ratio)
-		latest_prediction = self.packet_record.calculate_latest_prediction()
-		states.append(liner_to_log(latest_prediction))
+		states = [liner_to_log(receiving_rate), min(delay / 1000, 1), loss_ratio, liner_to_log(latest_prediction)]
 		
-		# calculate reward
+		# 奖励函数
 		reward = states[0] - states[1] - states[2]
-		
 		return states, reward, done, {}

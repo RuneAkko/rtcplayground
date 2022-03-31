@@ -99,7 +99,7 @@ class pktRecord:
 		interval=0 means based on the whole packets
 		The unit of return value: ms
 		"""
-		delay_list = self._get_result_list(interval=interval, key='delay')
+		delay_list = self._get_result_list(length=interval, key='delay')
 		if delay_list:
 			return np.mean(delay_list) - self.base_delay_ms
 		else:
@@ -111,7 +111,7 @@ class pktRecord:
 		interval=0 means based on the whole packets
 		The unit of return value: packet/packet
 		"""
-		loss_list = self._get_result_list(interval=interval, key='loss_count')
+		loss_list = self._get_result_list(length=interval, key='loss_count')
 		if len(loss_list) != 0:
 			loss_num = np.sum(loss_list)
 			received_num = len(loss_list)
@@ -125,7 +125,7 @@ class pktRecord:
 		interval=0 means based on the whole packets
 		The unit of return value: bps
 		"""
-		received_size_list = self._get_result_list(interval=interval, key='payload_byte')
+		received_size_list = self._get_result_list(length=interval, key='payload_byte')
 		if received_size_list:
 			received_nbytes = np.sum(received_size_list)
 			if interval == 0:
