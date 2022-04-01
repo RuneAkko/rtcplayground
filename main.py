@@ -6,7 +6,6 @@ from utils.trace_analyse import getTrace
 
 def ruleEstimatorTest(path):
     """
-
     :return:
     """
     env = GymEnv()
@@ -21,13 +20,18 @@ def ruleEstimatorTest(path):
 
     rate = env.ruleEstimator.predictionBandwidth
     targetRate = [rate]
-
+    netDataList = []
     while not traceDone and step < max_step:
-        rate, traceDone, qos1,qos2,qos3,qos4 = env.test(rate,step)
+        rate, traceDone, qos1,qos2,qos3,qos4,netData = env.test(rate,step)
         qosList.append(qos1)
         step += 1
         stepList.append(step)
         targetRate.append(rate)
+        netDataList.append(netData)
+
+    
+
+
 
     # realRate = Line()
     # realRate.name = "cap"

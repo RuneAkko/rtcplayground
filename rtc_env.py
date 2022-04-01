@@ -93,7 +93,7 @@ class GymEnv:
 
         qos1,qos2,qos3,qos4 = self.calculateNetQos()
 
-        return targetRate, done, qos1,qos2,qos3,qos4
+        return targetRate, done, qos1,qos2,qos3,qos4,packet_list
 
     def calculateNetQos(self):
         recv_rate = self.ruleEstimator.pktsRecord.calculate_receiving_rate(
