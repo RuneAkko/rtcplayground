@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import time
 import sys
 import random
 import os
@@ -50,6 +51,8 @@ class GymEnv:
             dtype=np.float64)
         self.ruleEstimator = mainEstimator()
 
+        self.lastEstimatorTs = 0
+
     # 用于 drl training
     # 重置rtc模拟环境、带宽估计器
     # 随机选择trace
@@ -71,7 +74,7 @@ class GymEnv:
         self.ruleEstimator = mainEstimator()
 
     # 模拟器返回网络情况
-    def test(self, targetRate):
+    def test(self, targetRate,stepNum):
         # action: log to linear
         bandwidth_prediction = log_to_linear(targetRate)
 
@@ -80,10 +83,17 @@ class GymEnv:
         for pkt in packet_list:
             self.ruleEstimator.report_states(pkt)
 
-        targetRate = self.ruleEstimator.get_estimated_bandwidth()
-        qos = self.calculateNetQos()
+        targetRate = self.ruleEstimator.predictionBandwidth
 
-        return targetRate, done, list(qos)
+        if len(packet_list)>0:
+            nowTs = stepNum
+            if (nowTs-self.lastEstimatorTs)*self.step_time >= 200:
+                self.lastEstimatorTs = stepNum
+                targetRate = self.ruleEstimator.get_estimated_bandwidth()
+
+        qos1,qos2,qos3,qos4 = self.calculateNetQos()
+
+        return targetRate, done, qos1,qos2,qos3,qos4
 
     def calculateNetQos(self):
         recv_rate = self.ruleEstimator.pktsRecord.calculate_receiving_rate(

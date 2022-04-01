@@ -3,7 +3,7 @@ from utils.info import pktInfo
 from utils.my_enum import interfaceState
 from utils.record import pktRecord
 
-InitialBWE = 300 * 1000  # 300kbps,初始带宽
+InitialBWE = 1000 * 1000  # 300kbps,初始带宽
 BaseDelay = 200  # ms, 假设传播时延
 
 
@@ -18,6 +18,9 @@ class mainEstimator(object):
 
         # last interval value or initial value, bps, int
         self.predictionBandwidth = InitialBWE
+
+        # 
+        # self.gcc.setIntervalState(self.pktsRecord)
 
     def report_states(self, stats: dict):
         """

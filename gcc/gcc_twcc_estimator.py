@@ -8,6 +8,7 @@ from .rate_controller import RateController
 from .rtt_calculator import rttCalculator
 from .state_machine import StateMachine
 from .trendline_filter import TrendLineFilter
+import copy
 
 MaxGroupNum = 60  # 每个 interval 纳入考虑的最大范围；pkt group 的个数；
 GroupBurstInterval = 5  # ms, pacer 一次性发送 5 ms 内的包，认为是一个 pkt group;
@@ -43,8 +44,9 @@ class GCC(object):
         self.rttCalculator = rttCalculator()
 
     def setIntervalState(self, record: pktRecord):
-        self.record = record
+        self.record = copy.deepcopy(record)
         self.currentTimestamp = record.pkts[-1].receive_timestamp_ms
+        # print(self.currentTimestamp)
 
     def getEstimateBandwidth(self) -> int:
         self.predictionBandwidth = min(
@@ -84,14 +86,13 @@ class GCC(object):
         currentIntervalDuration = self.arrivalFilter.pktGroups[0]
 
         self.overUseDetector.totalGroupNum = self.totalGroupNum
-        s = OveruseDetector.detect(
-            estimateQueueDelayDuration, self.currentTimestamp)
+        print(estimateDelayDuration,self.currentTimestamp)
+        s = OveruseDetector.detect(estimateQueueDelayDuration, self.currentTimestamp)
 
         # state transition
         state = self.stateMachine.transition(s)
 
         # aimd control rate
-        rate = self.rateController.aimdControl(state, self.rateCalculator.rateHat, self.currentTimestamp,
-                                               self.rttCalculator.rtt)
+        rate = self.rateController.aimdControl(state, self.rateCalculator.rateHat, self.currentTimestamp,self.rttCalculator.rtt)
 
         return rate

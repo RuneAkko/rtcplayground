@@ -14,7 +14,7 @@ def draw(*data: Line):
 		y = line.y
 		name = line.name
 		plt.plot(x, y, label=name)
-		plt.savefig("test")
+		plt.savefig("test"+line.name)
 		plt.show()
 		
 		plt.close()
