@@ -2,7 +2,8 @@ from plot.drawCurve import Line
 from plot.drawCurve import draw
 from rtc_env import GymEnv
 from utils.trace_analyse import getTrace
-
+from offlineStatTest import writeStatsReports
+import glob
 
 def ruleEstimatorTest(path):
     """
@@ -29,29 +30,30 @@ def ruleEstimatorTest(path):
         targetRate.append(rate)
         netDataList.append(netData)
 
-    
-
-
 
     # realRate = Line()
     # realRate.name = "cap"
     gccRate = Line()
-    gccRate.name = "targetRate"
+    gccRate.name = name+"-targetRate"
     gccRate.x = stepList
     gccRate.y = targetRate
 
     draw(gccRate)
 
     recvRate = Line()
-    recvRate.name = "recvRate"
+    recvRate.name = name+"-recvRate"
     recvRate.x = stepList
     recvRate.y = qosList
     draw(recvRate)
 
-    with open("testGccRate.txt","w") as f:
+    with open(name+"-testGccRate","w") as f:
         f.write(str(gccRate.y))
-    with open("testRecvRate.txt","w") as f:
+    with open(name+"-testRecvRate","w") as f:
         f.write(str(recvRate.y))
 
-testTracePath = "./traces/4G_500kbps.json"
-ruleEstimatorTest(testTracePath)
+    netDataSavePath = "./netData/"+name+"_netData"
+    writeStatsReports(netDataSavePath,netDataList)
+
+traceFiles = glob.glob(f"./traces/*.json")
+for ele in traceFiles:
+    ruleEstimatorTest(ele)
