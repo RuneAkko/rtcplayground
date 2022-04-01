@@ -1,4 +1,9 @@
 import json
+import logging
+import os.path
+
+from gcc.main_estimator import mainEstimator
+from plot.drawCurve import draw, Line
 
 
 def writeStatsReports(path, data):
@@ -18,30 +23,80 @@ def readStatsReports(path):
 			report = []
 			for ele in statsStr:
 				if len(ele) < 2:
-					continue
-				tmp = json.loads(ele)
-			# print(tmp)
+					tmp = {}
+				else:
+					tmp = json.loads(ele)
+				report.append(tmp)
+			stats_reports.append(report)
+	return stats_reports
+
+
+class testEnv:
+	def __init__(self, netData):
+		self.step_time = 60  # ms
+		self.estimator = mainEstimator()
+		self.lastEstimationTs = 0
+		self.testReports = netData
+	
+	def test(self, targetRate, stepNum):
+		for pkt in self.testReports[stepNum]:
+			self.estimator.report_states(pkt)
+		
+		targetRate = self.estimator.predictionBandwidth
+		
+		if len(self.testReports[stepNum]) > 2:
+			nowTs = self.estimator.gcc.currentTimestamp
+			if (nowTs - self.lastEstimationTs) >= 200:
+				logging.info("nowTs is [%s], lastTs is [%s]", nowTs, self.lastEstimationTs)
+				self.lastEstimationTs = nowTs
+				targetRate = self.estimator.get_estimated_bandwidth()
+		
+		recvRate, _, _, _ = self.calculateNetQos()
+		
+		return targetRate, recvRate
+	
+	def calculateNetQos(self):
+		recv_rate = self.estimator.pktsRecord.calculate_receiving_rate(
+			interval=self.step_time)
+		delay = self.estimator.pktsRecord.calculate_average_delay(
+			interval=self.step_time)
+		loss = self.estimator.pktsRecord.calculate_loss_ratio(
+			interval=self.step_time)
+		gccBwe = self.estimator.pktsRecord.calculate_latest_prediction()
+		return recv_rate, delay, loss, gccBwe
 
 
 if __name__ == "__main__":
-	l = [{
-		'arrival_time_ms': 66113,
-		'header_length': 24,
-		'padding_length': 0,
-		'payload_size': 1389,
-		'payload_type': 126,
-		'send_time_ms': 60999,
-		'sequence_number': 54366,
-		'ssrc': 12648429}, {
-		'arrival_time_ms': 66181,
-		'header_length': 24,
-		'padding_length': 0,
-		'payload_size': 1389,
-		'payload_type': 126,
-		'send_time_ms': 61069,
-		'sequence_number': 54411,
-		'ssrc': 12648429}]
 	
-	test_data = [l, l]
-	writeStatsReports("test", test_data)
-	readStatsReports("test")
+	if os.path.exists("test.log"):
+		os.remove("test.log")
+	
+	LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+	DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
+	logging.basicConfig(filename="test.log", level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
+	
+	netDataPath = "./netData/5G_12mbps_netData"
+	reports = readStatsReports(netDataPath)
+	
+	step = 0
+	stepList = [step]
+	maxStep = len(reports)
+	env = testEnv(reports)
+	gccRate = env.estimator.predictionBandwidth
+	rates = [gccRate]
+	while step < maxStep:
+		gccRate, _ = env.test(gccRate, step)
+		rates.append(gccRate)
+		step += 1
+		stepList.append(step)
+	
+	name = "localtest"
+	gccRateFig = Line()
+	gccRateFig.name = name + "-targetRate"
+	gccRateFig.x = stepList
+	gccRateFig.y = rates
+	
+	draw(gccRateFig)
+	
+	with open(name + "-testGccRate", "w") as f:
+		f.write(str(gccRateFig.y))

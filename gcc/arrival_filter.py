@@ -20,9 +20,9 @@ class ArrivalFilter:
 		到达时间在同一个 burst interval 且 与当前组的 delay 差值 < 0
 		"""
 		groupList = []
+		
 		group = pktGroup()
 		group.addPkt(pktsInfo[0])
-		
 		for ele in pktsInfo[1:]:
 			if ele.receive_timestamp_ms < group.arrivalTs:
 				# out of order arrivals
@@ -35,16 +35,17 @@ class ArrivalFilter:
 				group.addPkt(ele)
 				continue
 			# condition-2
-			if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
-				if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
-					group.addPkt(ele)
-					continue
+			# if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
+			# 	if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
+			# 		group.addPkt(ele)
+			# 		continue
 			
 			groupList.append(group)
 			group = pktGroup()
 			group.addPkt(ele)
-		self.pktGroups = groupList
 		
+		groupList.append(group)
+		self.pktGroups = groupList
 		self.groupNum = len(self.pktGroups)
 	
 	def measured_groupDelay_deltas(self):
