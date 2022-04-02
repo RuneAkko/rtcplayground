@@ -39,7 +39,6 @@ class ArrivalFilter:
 			# 	if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
 			# 		group.addPkt(ele)
 			# 		continue
-			
 			groupList.append(group)
 			group = pktGroup()
 			group.addPkt(ele)
