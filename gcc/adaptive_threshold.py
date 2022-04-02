@@ -17,16 +17,19 @@ class AdaptiveThreshold:
 		self.lastUpdateTime = 0
 		self.nowTime = 0
 		self.maxDeltaTime = 100  # ms
+		
+		self.lastEstimateDuration = 0
 	
 	def compare(self, estimateDuration) -> Signal:
 		
 		result = Signal.NORMAL
-		if estimateDuration > self.thresholdGamma:
+		if estimateDuration > self.thresholdGamma and estimateDuration >= self.lastEstimateDuration:
 			result = Signal.OVER_USE
 		if estimateDuration < (-1) * self.thresholdGamma:
 			result = Signal.UNDER_USE
 		
 		self.updateGamma(estimateDuration)
+		self.lastEstimateDuration = estimateDuration
 		return result
 	
 	def updateGamma(self, estimate):

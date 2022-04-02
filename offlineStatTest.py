@@ -75,7 +75,7 @@ if __name__ == "__main__":
 	DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
 	logging.basicConfig(filename="test.log", level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 	
-	netDataPath = "./netData/4G_3mbps_netData"
+	netDataPath = "./netData/5G_12mbps_netData"
 	reports = readStatsReports(netDataPath)
 	
 	step = 0
