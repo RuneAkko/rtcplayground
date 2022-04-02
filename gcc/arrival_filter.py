@@ -30,15 +30,15 @@ class ArrivalFilter:
 			if ele.send_timestamp_ms < group.sendTs:
 				# out of order send/departure
 				continue
-			# condition-1
-			if ele.send_timestamp_ms - group.pkts[-1].send_timestamp_ms <= self.burstInterval:
-				group.addPkt(ele)
-				continue
-			# condition-2
-			if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
-				if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
-					group.addPkt(ele)
-					continue
+			# # condition-1
+			# if ele.send_timestamp_ms - group.pkts[-1].send_timestamp_ms <= self.burstInterval:
+			# 	group.addPkt(ele)
+			# 	continue
+			# # condition-2
+			# if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
+			# 	if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
+			# 		group.addPkt(ele)
+			# 		continue
 			
 			groupList.append(group)
 			group = pktGroup()
