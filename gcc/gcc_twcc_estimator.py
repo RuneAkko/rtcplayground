@@ -110,9 +110,10 @@ class GCC(object):
 		# aimd control rate
 		rate = self.rateController.aimdControl(state, self.rateCalculator.rateHat, self.currentTimestamp,
 		                                       self.rttCalculator.rtt)
-		logging.info("[in this interval] now real rate is [%s]",
-		             self.rateCalculator.rateHat)
+		logging.info("[in this interval] now real rate is [%s]mbps",
+		             self.rateCalculator.rateHat / 1000000)
 		logging.info("[in this interval] now real rtt is [%s]",
 		             self.rttCalculator.rtt)
+		logging.info("[in this interval] aimd control rate is [%s] mbps", rate / 1000000)
 		self.predictionDelayBwe = rate
 		return rate
