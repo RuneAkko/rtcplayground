@@ -13,17 +13,17 @@ class pktRecord:
 		self.packet_num = 0
 		self.pkts = []  # a list of pktInfo, pktInfo 的所有网络指标，都是在一个 interval 中计算出来的
 		self.last_seqNo = {}  # ssrc:last sequence number
-		self.firstPktDelay = 0  # ms
+		self.firstPktDelay = None  # ms
 		self.min_seen_delay = self.base_delay_ms  # ms
-		self.last_interval_recv_time = 0  # ms, record the recv time of the last packet in last interval,
+		self.last_interval_recv_time = None  # ms, record the recv time of the last packet in last interval,
 	
 	def reset(self):
 		self.packet_num = 0
 		self.pkts = []
 		self.last_seqNo = {}
-		self.firstPktDelay = 0  # ms
+		self.firstPktDelay = None  # ms
 		self.min_seen_delay = self.base_delay_ms  # ms
-		self.last_interval_recv_time = 0
+		self.last_interval_recv_time = None
 	
 	def clear(self):
 		self.packet_num = 0
@@ -129,7 +129,7 @@ class pktRecord:
 		if received_size_list:
 			received_nbytes = np.sum(received_size_list)
 			if interval == 0:
-				interval = getattr(self.pkts[-1],'timestamp') - \
+				interval = getattr(self.pkts[-1], 'receive_timestamp_ms') - \
 				           self.last_interval_recv_time
 			return received_nbytes * 8 / interval * 1000
 		else:
@@ -140,6 +140,6 @@ class pktRecord:
 		The unit of return value: bps
 		"""
 		if self.packet_num > 0:
-			return getattr(self.pkts[-1],'bandwidth_prediction_bps')
+			return getattr(self.pkts[-1], 'bandwidth_prediction_bps')
 		else:
 			return 0

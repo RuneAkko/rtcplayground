@@ -16,7 +16,7 @@ def ruleEstimatorTest(path):
 	env.set(path)
 	
 	max_step = 100000
-	traceDone = None
+	traceDone = False
 	step = 0
 	
 	qosList = [0]
