@@ -37,22 +37,22 @@ def ruleEstimatorTest(path):
 	# realRate = Line()
 	# realRate.name = "cap"
 	gccRate = Line()
-	gccRate.name = name + "-targetRate"
+	gccRate.name = name + "-gccRate"
 	gccRate.x = stepList
 	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	
-	draw(gccRate)
 	
 	recvRate = Line()
 	recvRate.name = name + "-recvRate"
 	recvRate.x = stepList
 	recvRate.y = [x / 1000000 for x in qosList]  # mbps
-	draw(recvRate)
 	
-	with open(name + "-testGccRate", "w") as f:
-		f.write(str(gccRate.y))
-	with open(name + "-testRecvRate", "w") as f:
-		f.write(str(recvRate.y))
+	draw(name, gccRate, recvRate)
+	# draw(recvRate)
+	
+	# with open(name + "-testGccRate", "w") as f:
+	# 	f.write(str(gccRate.y))
+	# with open(name + "-testRecvRate", "w") as f:
+	# 	f.write(str(recvRate.y))
 	
 	netDataSavePath = "./netData/" + name + "_netData"
 	writeStatsReports(netDataSavePath, netDataList)

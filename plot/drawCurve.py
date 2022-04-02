@@ -8,12 +8,13 @@ class Line:
 		self.y = []
 
 
-def draw(*data: Line):
+def draw(bigName, *data: Line):
+	bigName = bigName
 	for line in data:
 		x = line.x  # report_interval
 		y = line.y  # 
 		name = line.name
 		plt.plot(x, y, label=name)
-		plt.savefig("./fig/test" + line.name)
-		plt.show()
-		plt.close()
+	plt.savefig("./fig/test" + bigName)
+	plt.show()
+	plt.close()
