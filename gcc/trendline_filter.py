@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 
@@ -22,7 +24,8 @@ class TrendLineFilter:
 		self.firstGroupTs = 0  # 本interval的第一个group完成时间
 		
 		# sample point: (abs arrival time,smoothed acc delay)
-		self.sampleList = []
+		self.sampleX = []
+		self.sampleY = []
 		
 		self.trendLine = 0.0  # 是一个很小的值
 	
@@ -37,24 +40,31 @@ class TrendLineFilter:
 		# 对 delay 进行指数滑动平均
 		# 添加样本点
 		for index in range(0, len(deltaTimes)):
-			newAccumulatedDelay = self.accumulatedDelay + deltaTimes[index]
-			newSmoothedDelay = self.smoothingAlpha * self.smoothedDelay + (
-					1 - self.smoothingAlpha) * newAccumulatedDelay
+			self.accumulatedDelay += deltaTimes[index]
+			self.smoothedDelay = self.smoothingAlpha * self.smoothedDelay + (
+					1 - self.smoothingAlpha) * self.accumulatedDelay
 			
-			self.accumulatedDelay = newAccumulatedDelay
-			self.smoothingAlpha = newSmoothedDelay
+			x = arrivalTimes[index] - self.firstGroupTs
+			y = self.smoothedDelay
 			
-			sample = [arrivalTimes[index] - self.firstGroupTs, newSmoothedDelay]
-			self.sampleList.append(sample)
+			if len(self.sampleX) == self.windowSize:
+				self.sampleX.pop(0)
+				self.sampleY.pop(0)
+			
+			self.sampleY.append(y)
+			self.sampleX.append(x)
 		
 		# todo: 估计 delay gradient 只用 windowsSize * burstInterval 时间内(0.1s)的数据，丢弃多余的
-		if len(self.sampleList) >= self.windowSize:
+		if len(self.sampleX) >= self.windowSize:
+			logging.info("sample List of accDelay : [%s]", self.sampleY)
+			logging.info("sample List of time: [%s]", self.sampleX)
 			self.trendLine = self._linearFit()
+			logging.info("update trend: [%s]", self.trendLine)
 		return float(self.trendLine * self.thresholdGain)
 	
 	def _linearFit(self):
-		x_list = self.sampleList[0][:]
-		y_list = self.sampleList[1][:]
+		x_list = self.sampleX
+		y_list = self.sampleY
 		x_avg = np.mean(x_list)
 		y_avg = np.mean(y_list)
 		numerator = np.sum(

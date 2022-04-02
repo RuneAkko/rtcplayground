@@ -4,7 +4,7 @@ from utils.my_enum import State
 
 
 class RateController:
-	def __init__(self):
+	def __init__(self, targetRate):
 		"""
 
 		"""
@@ -17,7 +17,7 @@ class RateController:
 		
 		# self.maxRate = 0
 		# self.minRate = 0
-		self.lastTargetRate = 0
+		self.lastTargetRate = targetRate
 		self.lastRateUpdateTime = 0
 		self.nowTime = 0
 		
