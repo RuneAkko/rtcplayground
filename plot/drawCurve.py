@@ -11,10 +11,11 @@ class Line:
 def draw(bigName, *data: Line):
 	bigName = bigName
 	for line in data:
-		x = line.x  # report_interval
+		# x = line.x  # report_interval
 		y = line.y  # 
 		name = line.name
-		plt.plot(x, y, label=name)
+		plt.plot(y, label=name)
+	plt.legend()
 	plt.savefig("./fig/test" + bigName)
 	plt.show()
 	plt.close()

@@ -96,7 +96,7 @@ if __name__ == "__main__":
 	gccRateFig.x = stepList
 	gccRateFig.y = [x / 1000000 for x in rates]
 	
-	draw(gccRateFig)
+	draw(name, gccRateFig)
 	
 	with open(name + "-testGccRate", "w") as f:
 		f.write(str(gccRateFig.y))
