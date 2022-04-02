@@ -87,9 +87,9 @@ class GymEnv:
 		targetRate = self.ruleEstimator.predictionBandwidth
 		
 		if len(packet_list) > 0:
-			nowTs = stepNum
-			if (nowTs - self.lastEstimatorTs) * self.step_time >= 200:
-				self.lastEstimatorTs = stepNum
+			nowTs = self.ruleEstimator.gcc.currentTimestamp
+			if (nowTs - self.lastEstimatorTs) >= 200:
+				self.lastEstimatorTs = nowTs
 				targetRate = self.ruleEstimator.get_estimated_bandwidth()
 		
 		qos1, qos2, qos3, qos4 = self.calculateNetQos()
