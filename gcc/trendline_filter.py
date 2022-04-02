@@ -28,6 +28,8 @@ class TrendLineFilter:
 		self.sampleY = []
 		
 		self.trendLine = 0.0  # 是一个很小的值
+		self.TRENDLINE_MAX_COUNT = 1000
+		self.numCount = 0
 	
 	def updateTrendLine(self, deltaTimes, arrivalTimes) -> float:
 		"""
@@ -40,6 +42,11 @@ class TrendLineFilter:
 		# 对 delay 进行指数滑动平均
 		# 添加样本点
 		for index in range(0, len(deltaTimes)):
+			if self.numCount > self.TRENDLINE_MAX_COUNT:
+				self.numCount = self.TRENDLINE_MAX_COUNT
+			else:
+				self.numCount += 1
+			
 			self.accumulatedDelay += deltaTimes[index]
 			self.smoothedDelay = self.smoothingAlpha * self.smoothedDelay + (
 					1 - self.smoothingAlpha) * self.accumulatedDelay

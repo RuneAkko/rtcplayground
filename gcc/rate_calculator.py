@@ -47,4 +47,4 @@ class rateCalculator:
 			self.rateHat = self.sumBytes * 8
 			return
 		
-		self.rateHat = self.sumBytes * 8 / deltaTime
+		self.rateHat = self.sumBytes * 8 / deltaTime * 1000  # bps

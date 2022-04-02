@@ -131,7 +131,7 @@ class pktRecord:
 			if interval == 0:
 				interval = getattr(self.pkts[-1], 'receive_timestamp_ms') - \
 				           self.last_interval_recv_time
-			return received_nbytes * 8 / interval * 1000
+			return received_nbytes * 8 / interval * 1000  # bps
 		else:
 			return 0
 	

@@ -39,14 +39,14 @@ def ruleEstimatorTest(path):
 	gccRate = Line()
 	gccRate.name = name + "-targetRate"
 	gccRate.x = stepList
-	gccRate.y = targetRate
+	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
 	
 	draw(gccRate)
 	
 	recvRate = Line()
 	recvRate.name = name + "-recvRate"
 	recvRate.x = stepList
-	recvRate.y = qosList
+	recvRate.y = [x / 1000000 for x in qosList]  # mbps
 	draw(recvRate)
 	
 	with open(name + "-testGccRate", "w") as f:

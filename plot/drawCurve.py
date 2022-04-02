@@ -10,8 +10,8 @@ class Line:
 
 def draw(*data: Line):
 	for line in data:
-		x = line.x
-		y = line.y
+		x = line.x  # report_interval
+		y = line.y  # 
 		name = line.name
 		plt.plot(x, y, label=name)
 		plt.savefig("./fig/test" + line.name)

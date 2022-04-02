@@ -9,7 +9,7 @@ class RateController:
 
 		"""
 		self.lastRTT = None
-		self.rateHat = 0  #
+		self.rateHat = 0  # bps
 		
 		self.rateAverage = 0
 		self.rateAverageVar = 0
@@ -17,7 +17,8 @@ class RateController:
 		
 		# self.maxRate = 0
 		# self.minRate = 0
-		self.lastTargetRate = targetRate
+		self.lastTargetRate = targetRate  # bps
+		
 		self.lastRateUpdateTime = 0
 		self.nowTime = 0
 		

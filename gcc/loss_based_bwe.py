@@ -17,7 +17,7 @@ class LoseBasedBwe:
 		self.increaseFactor = 1.05
 		self.decreaseLossThreshold = 0.1
 		
-		self.bwe = bwe
+		self.bwe = bwe  # bps
 	
 	def lossBasedBwe(self, loss) -> int:
 		assert loss >= 0

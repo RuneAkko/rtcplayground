@@ -3,7 +3,6 @@ import logging
 
 from utils.record import pktRecord
 from .arrival_filter import ArrivalFilter
-from .delay_based_bwe import DelayBasedBwe
 from .loss_based_bwe import LoseBasedBwe
 from .overuse_detector import OveruseDetector
 from .rate_calculator import rateCalculator
@@ -18,8 +17,8 @@ GroupBurstInterval = 5  # ms, pacer 一次性发送 5 ms 内的包，认为是�
 
 class GCC(object):
 	def __init__(self, predictionBandwidth):
-		self.predictionBandwidth = predictionBandwidth
-		self.maxGroupNum = MaxGroupNum
+		self.predictionBandwidth = predictionBandwidth  # bps
+		self.minGroupNum = MaxGroupNum
 		
 		self.record = None
 		self.currentTimestamp = -1.0  # the last pkt arrival time of this interval,ms
@@ -34,7 +33,7 @@ class GCC(object):
 		self.rateLossController = LoseBasedBwe(self.predictionBandwidth)
 		
 		#
-		self.rateDelayController = DelayBasedBwe()
+		# self.rateDelayController = DelayBasedBwe()
 		
 		# delay module component
 		self.arrivalFilter = ArrivalFilter(GroupBurstInterval)
@@ -89,7 +88,7 @@ class GCC(object):
 		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
 		#
 		estimateQueueDelayDuration = queueDelayDelta * \
-		                             min(self.arrivalFilter.groupNum, self.maxGroupNum)
+		                             min(self.tlf.numCount, self.minGroupNum)
 		
 		# # # 从本 interval 第一个包发出，到最后一个包发出的时间
 		# currentIntervalDuration = self.arrivalFilter.pktGroups[0]
