@@ -35,10 +35,10 @@ class ArrivalFilter:
 				group.addPkt(ele)
 				continue
 			# condition-2
-			# if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
-			# 	if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
-			# 		group.addPkt(ele)
-			# 		continue
+			if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
+				if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
+					group.addPkt(ele)
+					continue
 			
 			groupList.append(group)
 			group = pktGroup()

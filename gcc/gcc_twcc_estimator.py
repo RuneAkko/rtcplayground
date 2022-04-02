@@ -18,6 +18,7 @@ GroupBurstInterval = 5  # ms, pacer 一次性发送 5 ms 内的包，认为是�
 class GCC(object):
 	def __init__(self, predictionBandwidth):
 		self.predictionBandwidth = predictionBandwidth  # bps
+		self.predictionDelayBwe = predictionBandwidth  # bps
 		self.minGroupNum = MaxGroupNum
 		
 		self.record = None
@@ -51,12 +52,14 @@ class GCC(object):
 		self.record = copy.deepcopy(record)
 	
 	def getEstimateBandwidth(self) -> int:
-		loss_rate = self.getEstimateBandwidthByLoss()
+		_ = self.getEstimateBandwidthByLoss()
 		delay_rate = self.getEstimateBandwidthByDelay()
-		self.predictionBandwidth = min(
-			loss_rate, delay_rate
-		)
-		logging.info("[in this interval] loss-rate is [%s], delay-rate is [%s]", loss_rate, delay_rate)
+		# self.predictionBandwidth = min(
+		# 	loss_rate, delay_rate
+		# )
+		self.predictionBandwidth = delay_rate
+		logging.info("[in this interval] delay-rate is [%s] mbps",
+		             delay_rate / 1000000)
 		return self.predictionBandwidth
 	
 	def getEstimateBandwidthByLoss(self) -> int:
@@ -70,11 +73,11 @@ class GCC(object):
 		
 		logging.info("[in this interval] group num is [%s]", self.arrivalFilter.groupNum)
 		if self.arrivalFilter.groupNum < 2:
-			return self.predictionBandwidth
+			return self.predictionDelayBwe
 		
 		delayDelta, arrivalTs = self.arrivalFilter.measured_groupDelay_deltas()
 		logging.info("[in this interval] delayDelta from group is [%s]", delayDelta)
-		logging.info("[in this interval] arrivalTs from group is [%s]", arrivalTs)
+		# logging.info("[in this interval] arrivalTs from group is [%s]", arrivalTs)
 		
 		# self.tlf.firstGroupTs = self.arrivalFilter.pktGroups[0].arrivalTs
 		
@@ -83,7 +86,7 @@ class GCC(object):
 		
 		# gradient 没变化，带宽估计不变
 		if queueDelayDelta == 0:
-			return self.predictionBandwidth
+			return self.predictionDelayBwe
 		
 		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
 		#
@@ -111,4 +114,5 @@ class GCC(object):
 		             self.rateCalculator.rateHat)
 		logging.info("[in this interval] now real rtt is [%s]",
 		             self.rttCalculator.rtt)
+		self.predictionDelayBwe = rate
 		return rate
