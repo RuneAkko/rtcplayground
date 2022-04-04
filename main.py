@@ -46,7 +46,7 @@ def ruleEstimatorTest(tracePath):
 	recvRate.x = stepList
 	recvRate.y = [x / 1000000 for x in qosList]  # mbps
 	
-	draw(traceName, gccRate, recvRate)
+	draw(traceName + "-" + estimationName, gccRate, recvRate)
 	
 	# with open(name + "-testGccRate", "w") as f:
 	# 	f.write(str(gccRate.y))
@@ -96,7 +96,7 @@ def geminiEstimatorTest(tracePath):
 	recvRate.x = stepList
 	recvRate.y = [x / 1000000 for x in qosList]  # mbps
 	
-	draw(traceName, gccRate, recvRate)
+	draw(traceName + "-" + estimationName, gccRate, recvRate)
 	
 	# with open(name + "-testGccRate", "w") as f:
 	# 	f.write(str(gccRate.y))
