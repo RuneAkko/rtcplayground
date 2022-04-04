@@ -29,7 +29,7 @@ def estimatorTest(tracePath, estimatorTag):
 	env = GymEnv()
 	traceName, tracePatterns = readTrace(tracePath)
 	
-	env.set(tracePath)
+	env.setAlphaRtcGym(tracePath)
 	
 	max_step = 100000
 	traceDone = False
@@ -73,15 +73,15 @@ def estimatorTest(tracePath, estimatorTag):
 	delayCurve.x = stepList
 	delayCurve.y = delayList
 	
-	draw(traceName + "-" + estimationName, gccRate, recvRate, capCurve)
-	draw(traceName + "-" + estimationName, delayCurve)
+	draw(traceName + "-rate-" + estimationName, gccRate, recvRate)
+	draw(traceName + "-delay-" + estimationName, delayCurve)
 	
 	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"./traces/*.json")
+traceFiles = glob.glob(f"./testtraces/*.json")
 for ele in traceFiles:
-	estimatorTest(ele, "0")
+	estimatorTest(ele, 0)
 for ele in traceFiles:
-	estimatorTest(ele, "1")
+	estimatorTest(ele, 1)
