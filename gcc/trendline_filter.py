@@ -4,7 +4,7 @@ import numpy as np
 
 
 class TrendLineFilter:
-	def __init__(self, window_size=20, smoothing_alpha=0.9, threshold_gain=1.0):
+	def __init__(self, window_size=20, smoothing_alpha=0.9, threshold_gain=4.0):
 		"""
 		使用最小二乘估计求解线性回归,将斜率作为 delay gradient 的滤波值。
 		

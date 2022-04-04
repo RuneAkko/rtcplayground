@@ -6,8 +6,6 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
-figSavePath = "traceFig/"
-
 
 class TracePattern(object):
 	def __init__(self):
@@ -83,6 +81,7 @@ def drawCurve(data: List[TracePattern], attr, name, path):
 
 
 if __name__ == "__main__":
+	figSavePath = "traceFig/"
 	traceFiles = glob.glob(f"../traces/*.json")
 	for ele in traceFiles:
 		name, tmpp = readTrace(ele)

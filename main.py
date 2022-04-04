@@ -7,8 +7,25 @@ from rtc_env import GymEnv
 from utils.trace_analyse import readTrace, preprocess
 
 
-def ruleEstimatorTest(tracePath):
-	estimationName = "OwnGCC"
+def scaleTraceCap(tracePath) -> Line:
+	traceName, ts = readTrace(tracePath)
+	ts = preprocess(ts)
+	traceCap = Line()
+	y = [tmp.capacity for tmp in ts]
+	x = [tmp.time / 60 for tmp in ts]
+	traceCap.x = x
+	traceCap.y = y
+	return traceCap
+
+
+def estimatorTest(tracePath, estimatorTag):
+	if estimatorTag == 0:
+		estimationName = "OwnGCC"
+		testversion = "1"
+	else:
+		estimationName = "GeminiGCC"
+		testversion = "2"
+	
 	env = GymEnv()
 	traceName, tracePatterns = readTrace(tracePath)
 	
@@ -18,23 +35,28 @@ def ruleEstimatorTest(tracePath):
 	traceDone = False
 	step = 0
 	
-	qosList = [0]
+	recvList = [0]
 	stepList = [step]
+	delayList = [0]
 	
-	rate = env.ruleEstimator.predictionBandwidth
+	rate = env.lastBwe
+	
 	targetRate = [rate]
 	netDataList = []
 	
 	while not traceDone and step < max_step:
-		rate, traceDone, recvRate, qos2, qos3, qos4, netData = env.testV1(rate)
-		qosList.append(recvRate)
+		if estimatorTag == 0:
+			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV1(rate)
+		else:
+			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV2(rate)
+		recvList.append(recvRate)
 		step += 1
 		stepList.append(step)
+		delayList.append(delay)
 		targetRate.append(rate)
 		netDataList.append(netData)
 	
-	tracePatterns = preprocess(tracePatterns)
-	capCurve = Line()
+	capCurve = scaleTraceCap(tracePath)
 	
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
@@ -44,64 +66,15 @@ def ruleEstimatorTest(tracePath):
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
-	recvRate.y = [x / 1000000 for x in qosList]  # mbps
+	recvRate.y = [x / 1000000 for x in recvList]  # mbps
 	
-	draw(traceName + "-" + estimationName, gccRate, recvRate)
+	delayCurve = Line()
+	delayCurve.name = traceName + "-delay-" + estimationName
+	delayCurve.x = stepList
+	delayCurve.y = delayList
 	
-	# with open(name + "-testGccRate", "w") as f:
-	# 	f.write(str(gccRate.y))
-	# with open(name + "-testRecvRate", "w") as f:
-	# 	f.write(str(recvRate.y))
-	
-	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	writeStatsReports(netDataSavePath, netDataList)
-
-
-def geminiEstimatorTest(tracePath):
-	estimationName = "GeminiGCC"
-	env = GymEnv()
-	traceName, tracePatterns = readTrace(tracePath)
-	
-	env.set(tracePath)
-	
-	max_step = 100000
-	traceDone = False
-	step = 0
-	
-	qosList = [0]
-	stepList = [step]
-	
-	rate = env.ruleEstimator.predictionBandwidth
-	targetRate = [rate]
-	netDataList = []
-	
-	while not traceDone and step < max_step:
-		rate, traceDone, recvRate, qos2, qos3, qos4, netData = env.testV2(rate)
-		qosList.append(recvRate)
-		step += 1
-		stepList.append(step)
-		targetRate.append(rate)
-		netDataList.append(netData)
-	
-	tracePatterns = preprocess(tracePatterns)
-	capCurve = Line()
-	
-	gccRate = Line()
-	gccRate.name = traceName + "-gccRate" + "-" + estimationName
-	gccRate.x = stepList
-	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	
-	recvRate = Line()
-	recvRate.name = traceName + "-recvRate" + "-" + estimationName
-	recvRate.x = stepList
-	recvRate.y = [x / 1000000 for x in qosList]  # mbps
-	
-	draw(traceName + "-" + estimationName, gccRate, recvRate)
-	
-	# with open(name + "-testGccRate", "w") as f:
-	# 	f.write(str(gccRate.y))
-	# with open(name + "-testRecvRate", "w") as f:
-	# 	f.write(str(recvRate.y))
+	draw(traceName + "-" + estimationName, gccRate, recvRate, capCurve)
+	draw(traceName + "-" + estimationName, delayCurve)
 	
 	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	writeStatsReports(netDataSavePath, netDataList)
@@ -109,6 +82,6 @@ def geminiEstimatorTest(tracePath):
 
 traceFiles = glob.glob(f"./traces/*.json")
 for ele in traceFiles:
-	ruleEstimatorTest(ele)
+	estimatorTest(ele, "0")
 for ele in traceFiles:
-	geminiEstimatorTest(ele)
+	estimatorTest(ele, "1")

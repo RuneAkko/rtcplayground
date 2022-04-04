@@ -81,11 +81,11 @@ class GymEnv:
 		next_targetRate = self.ruleEstimator.predictionBandwidth
 		
 		if len(packet_list) > 0:
-			nowTs = self.ruleEstimator.gcc.currentTimestamp
-			# 调用带宽估计间隔
-			if (nowTs - self.lastEstimatorTs) >= 200:
-				self.lastEstimatorTs = nowTs
-				next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
+			# nowTs = self.ruleEstimator.gcc.currentTimestamp
+			# # 调用带宽估计间隔
+			# if (nowTs - self.lastEstimatorTs) >= 200:
+			# 	self.lastEstimatorTs = nowTs
+			next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
 		if next_targetRate != 0:
 			self.lastBwe = next_targetRate
 		qos1, qos2, qos3, qos4 = self.calculateNetQosV1()
