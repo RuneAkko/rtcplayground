@@ -3,7 +3,7 @@ from utils.my_enum import interfaceState
 from utils.record import pktRecord
 from .gcc_twcc_estimator import GCC
 
-InitialBWE = 1000 * 1000  # 1 mbps,初始带宽
+InitialBWE = 3000 * 1000  # 3 mbps,初始带宽
 BaseDelay = 200  # ms, 假设传播时延
 
 

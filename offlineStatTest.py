@@ -90,7 +90,7 @@ if __name__ == "__main__":
 		step += 1
 		stepList.append(step)
 	
-	name = "localtest"
+	name = "LocalTest"
 	gccRateFig = Line()
 	gccRateFig.name = name + "-targetRate"
 	gccRateFig.x = stepList

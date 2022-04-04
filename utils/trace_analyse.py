@@ -19,9 +19,17 @@ class TracePattern(object):
 		self.time = 0.0
 
 
-def preprocess(path):
-	name, data = getTrace(path)
-	
+def dict2TracePattern(data):
+	tmp = TracePattern()
+	for index in ["duration", "capacity", "loss", "jitter", "rtt"]:
+		v = data.get(index, 0.0)
+		if index == "capacity":
+			v = v / 1000
+		setattr(tmp, index, v)
+	return tmp
+
+
+def preprocess(data: List[TracePattern]) -> List[TracePattern]:
 	tmpTime = 0.0
 	attrM = abs(np.median([x.capacity for x in data]))
 	last = None
@@ -34,14 +42,18 @@ def preprocess(path):
 			ts.capacity = last
 		last = ts.capacity
 		result.append(ts)
+	return result
 
 
-def dict2TracePattern(data):
-	tmp = TracePattern()
-	for index in ["duration", "capacity", "loss", "jitter", "rtt"]:
-		v = data.get(index, 0.0)
-		setattr(tmp, index, v)
-	return tmp
+def readTrace(path) -> (str, List[TracePattern]):
+	fileName = os.path.basename(path).split(".")[0]
+	ts = []
+	with open(path, "r") as f:
+		data = json.load(f)
+		for ele in data["uplink"]["trace_pattern"]:
+			t = dict2TracePattern(ele)
+			ts.append(t)
+	return fileName, ts
 
 
 def drawCurve(data: List[TracePattern], attr, name, path):
@@ -63,40 +75,16 @@ def drawCurve(data: List[TracePattern], attr, name, path):
 	plt.plot(x, y, label=name)
 	plt.xlabel("t/ms")
 	if attr == "capacity":
-		plt.ylabel("cap/kbps")
+		plt.ylabel("cap/mbps")
 	plt.title(name + " " + attr + "-curve")
 	plt.legend()
 	plt.savefig(path + name + " " + attr + "-curve")
 	plt.close()
 
 
-def getTrace(path) -> (str, List[TracePattern]):
-	fileName = os.path.basename(path).split(".")[0]
-	ts = []
-	with open(path, "r") as f:
-		data = json.load(f)
-		for ele in data["uplink"]["trace_pattern"]:
-			t = dict2TracePattern(ele)
-			ts.append(t)
-	return fileName, ts
-
-
-# def drawCurveWithInterval()
-
-def traceWithCapacity():
-	# traceDir = os.path.join(os.path.dirname(__file__), "../traces")
-	traceFiles = glob.glob(f"../traces/*.json")
-	if not os.path.exists(figSavePath):
-		os.makedirs(figSavePath)
-	
-	for path in traceFiles:
-		name, data = getTrace(path)
-		drawCurve(data, "capacity", name, figSavePath)
-	# break
-
-
-# drawCurve(ts, "rtt", fileName, figSavePath)
-
-
 if __name__ == "__main__":
-	traceWithCapacity()
+	traceFiles = glob.glob(f"../traces/*.json")
+	for ele in traceFiles:
+		name, tmpp = readTrace(ele)
+		data = preprocess(tmpp)
+		drawCurve(data, "capacity", name, figSavePath)
