@@ -8,9 +8,6 @@ from utils.trace_analyse import readTrace, preprocess
 
 
 def ruleEstimatorTest(tracePath):
-	"""
-	:return:
-	"""
 	estimationName = "OwnGCC"
 	env = GymEnv()
 	traceName, tracePatterns = readTrace(tracePath)
@@ -29,7 +26,7 @@ def ruleEstimatorTest(tracePath):
 	netDataList = []
 	
 	while not traceDone and step < max_step:
-		rate, traceDone, recvRate, qos2, qos3, qos4, netData = env.test(rate, step)
+		rate, traceDone, recvRate, qos2, qos3, qos4, netData = env.testV1(rate)
 		qosList.append(recvRate)
 		step += 1
 		stepList.append(step)
@@ -79,7 +76,7 @@ def geminiEstimatorTest(tracePath):
 	netDataList = []
 	
 	while not traceDone and step < max_step:
-		rate, traceDone, recvRate, qos2, qos3, qos4, netData = env.test(rate, step)
+		rate, traceDone, recvRate, qos2, qos3, qos4, netData = env.testV2(rate)
 		qosList.append(recvRate)
 		step += 1
 		stepList.append(step)
@@ -113,3 +110,5 @@ def geminiEstimatorTest(tracePath):
 traceFiles = glob.glob(f"./traces/*.json")
 for ele in traceFiles:
 	ruleEstimatorTest(ele)
+for ele in traceFiles:
+	geminiEstimatorTest(ele)

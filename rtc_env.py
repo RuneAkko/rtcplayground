@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import glob
 import os
-import random
 import sys
+import time
 
-import alphartc_gym.utils.packet_record
 import numpy as np
-from alphartc_gym.utils.packet_info import PacketInfo
 
 from gcc.main_estimator import mainEstimator
 from geminiGCC.main_estimator import mainGeminiEstimator, get_time_ms
-from gym import spaces
+from utils.utilBackup.packet_info import PacketInfo
+from utils.utilBackup.packet_record import PacketRecord
 
 sys.path.append(os.path.join(
 	os.path.dirname(os.path.abspath(__file__)), "gym"))
@@ -26,6 +24,8 @@ MAX_BANDWIDTH_MBPS = 20
 MIN_BANDWIDTH_MBPS = 0.08
 LOG_MAX_BANDWIDTH_MBPS = np.log(MAX_BANDWIDTH_MBPS)
 LOG_MIN_BANDWIDTH_MBPS = np.log(MIN_BANDWIDTH_MBPS)
+
+INIT_BANDWIDTH = 3000 * 1000  # 3m bps
 
 
 def liner_to_log(value):
@@ -43,76 +43,71 @@ def log_to_linear(value):
 	return np.exp(log_bwe) * UNIT_M
 
 
+def get_time_ms():
+	return int(time.time() * 1000)
+
+
 class GymEnv:
 	def __init__(self, step_time=60):
+		self.packet_record = PacketRecord()
 		self.gym_env = None
-		self.step_time = step_time
-		trace_dir = os.path.join(os.path.dirname(__file__), "traces")
-		self.trace_set = glob.glob(f'{trace_dir}/**/*.json', recursive=True)
-		self.action_space = spaces.Box(
-			low=0.0, high=1.0, shape=(1,), dtype=np.float64)
-		self.observation_space = spaces.Box(
-			low=np.array([0.0, 0.0, 0.0, 0.0]),
-			high=np.array([1.0, 1.0, 1.0, 1.0]),
-			dtype=np.float64)
-		self.ruleEstimator = mainEstimator()
-		self.geminiEstimator = mainGeminiEstimator(self.ruleEstimator.predictionBandwidth)
+		self.step_time = step_time  # 仿真环境 report pkt stat 的间隔, ms
+		
+		self.ruleEstimator = mainEstimator(INIT_BANDWIDTH)
+		self.geminiEstimator = mainGeminiEstimator(INIT_BANDWIDTH)
 		
 		self.lastEstimatorTs = 0
-		
-		self.lastBwe = None
+		self.lastBwe = INIT_BANDWIDTH
 	
-	# 模拟器返回网络情况
-	def test(self, targetRate, stepNum):
+	# 设置仿真环境使用的trace
+	def setAlphaRtcGym(self, trace):
+		self.gym_env = alphartc_gym.Gym()
+		self.gym_env.reset(trace_path=trace,
+		                   report_interval_ms=self.step_time,
+		                   duration_time_ms=0)
+	
+	# 用于测试拥塞控制算法在特定 trace 上的表现
+	# 接收估计带宽，执行拥塞控制，返回下一个 step interval pkts
+	# v1 使用 own-gcc
+	def testV1(self, targetRate):
 		# action: log to linear
 		# bandwidth_prediction = log_to_linear(targetRate)
-		bandwidth_prediction = targetRate
 		
-		packet_list, done = self.gym_env.step(bandwidth_prediction)
+		packet_list, done = self.gym_env.step(targetRate)
 		
 		for pkt in packet_list:
 			self.ruleEstimator.report_states(pkt)
 		
-		targetRate = self.ruleEstimator.predictionBandwidth
+		next_targetRate = self.ruleEstimator.predictionBandwidth
 		
 		if len(packet_list) > 0:
 			nowTs = self.ruleEstimator.gcc.currentTimestamp
+			# 调用带宽估计间隔
 			if (nowTs - self.lastEstimatorTs) >= 200:
 				self.lastEstimatorTs = nowTs
-				targetRate = self.ruleEstimator.get_estimated_bandwidth()
+				next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
+		if next_targetRate != 0:
+			self.lastBwe = next_targetRate
+		qos1, qos2, qos3, qos4 = self.calculateNetQosV1()
 		
-		qos1, qos2, qos3, qos4 = self.calculateNetQos()
-		
-		return targetRate, done, qos1, qos2, qos3, qos4, packet_list
+		return self.lastBwe, done, qos1, qos2, qos3, qos4, packet_list
 	
+	# 用于测试拥塞控制算法在特定 trace 上的表现
+	# 接收估计带宽，执行拥塞控制，返回下一个 step interval pkts
+	# v2 使用 gemini-gcc
 	def testV2(self, targetRate):
-		# bandwidth_prediction = log_to_linear(targetRate)
-		bandwidth_prediction = targetRate
-		deltaTime = 0
-		if self.geminiEstimator.last_time is None:
-			self.geminiEstimator.last_time = get_time_ms()
-			deltaTime = 0
-		else:
-			now = get_time_ms()
-			deltaTime = now - self.geminiEstimator.last_time
-			self.geminiEstimator.last_time = now
+		packet_list, done = self.gym_env.step(targetRate)
 		
-		packet_list, done = self.gym_env.step(bandwidth_prediction)
-		
-		gccRate = 0
+		next_targetRate = 0
 		if len(packet_list) > 0:
 			now_ts = get_time_ms() - self.geminiEstimator.first_time
 			self.geminiEstimator.gcc_ack_bitrate.ack_estimator_incoming(packet_list)
 			result = self.geminiEstimator.gcc_rate_controller.delay_bwe_incoming(
 				packet_list, self.geminiEstimator.gcc_ack_bitrate.ack_estimator_bitrate_bps(),
 				now_ts)
-			gccRate = result.bitrate
-		if gccRate != 0:
-			self.lastBwe = gccRate
-			bandwidth_prediction = gccRate
-		
-		if self.lastBwe is None:
-			self.lastBwe = bandwidth_prediction
+			next_targetRate = result.bitrate
+		if next_targetRate != 0:
+			self.lastBwe = next_targetRate
 		
 		for pkt in packet_list:
 			packet_info = PacketInfo()
@@ -124,11 +119,12 @@ class GymEnv:
 			packet_info.padding_length = pkt["padding_length"]
 			packet_info.header_length = pkt["header_length"]
 			packet_info.payload_size = pkt["payload_size"]
-			packet_info.bandwidth_prediction = bandwidth_prediction
+			packet_info.bandwidth_prediction = self.lastBwe
 			self.packet_record.on_receive(packet_info)
-		return bandwidth_prediction / UNIT_M
+		qos1, qos2, qos3, qos4 = self.calculateNetQosV2()
+		return self.lastBwe, done, qos1, qos2, qos3, qos4, packet_list
 	
-	def calculateNetQos(self):
+	def calculateNetQosV1(self):
 		recv_rate = self.ruleEstimator.pktsRecord.calculate_receiving_rate(
 			interval=self.step_time)
 		delay = self.ruleEstimator.pktsRecord.calculate_average_delay(
@@ -138,43 +134,12 @@ class GymEnv:
 		lastGccBwe = self.ruleEstimator.pktsRecord.calculate_latest_prediction()
 		return recv_rate, delay, loss, lastGccBwe
 	
-	# 用于 drl training
-	# 重置rtc模拟环境、带宽估计器
-	# 随机选择trace
-	def reset(self):
-		self.gym_env = alphartc_gym.Gym()
-		self.gym_env.reset(trace_path=random.choice(self.trace_set),
-		                   report_interval_ms=self.step_time,
-		                   duration_time_ms=0)
-		self.ruleEstimator = mainEstimator()
-		
-		return [0.0, 0.0, 0.0, 0.0]
-	
-	# 规则算法测试
-	def set(self, testTrace):
-		self.gym_env = alphartc_gym.Gym()
-		self.gym_env.reset(trace_path=testTrace,
-		                   report_interval_ms=self.step_time,
-		                   duration_time_ms=0)
-		self.ruleEstimator = mainEstimator()
-	
-	# 用于强化学习执行 action，返回 reward
-	def step(self, action):
-		# action: log to linear
-		bandwidth_prediction = log_to_linear(action)
-		
-		# 模拟器返回网络情况
-		packet_list, done = self.gym_env.step(bandwidth_prediction)
-		
-		for pkt in packet_list:
-			self.ruleEstimator.report_states(pkt)
-		
-		receiving_rate, delay, loss_ratio, latest_prediction = self.calculateNetQos()
-		
-		# calculate state
-		states = [liner_to_log(receiving_rate), min(
-			delay / 1000, 1), loss_ratio, liner_to_log(latest_prediction)]
-		
-		# 奖励函数
-		reward = states[0] - states[1] - states[2]
-		return states, reward, done, {}
+	def calculateNetQosV2(self):
+		recv_rate = self.packet_record.calculate_receiving_rate(
+			interval=self.step_time)
+		delay = self.packet_record.calculate_average_delay(
+			interval=self.step_time)
+		loss = self.packet_record.calculate_loss_ratio(
+			interval=self.step_time)
+		lastGccBwe = self.packet_record.calculate_latest_prediction()
+		return recv_rate, delay, loss, lastGccBwe

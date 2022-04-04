@@ -15,6 +15,3 @@ class mainGeminiEstimator:
 		self.gcc_rate_controller.set_time(self.first_time)
 		self.gcc_rate_controller.set_start_bitrate(self.latest_bandwidth)
 		self.gcc_ack_bitrate = Ack_bitrate_estimator()
-		self.gcc_bitrate = self.latest_bandwidth
-		
-		self.last_time = None
