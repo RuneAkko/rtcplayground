@@ -5,4 +5,3 @@ __pycache__
 !pretrained_model.pth
 data/
 gym/
-traces/
