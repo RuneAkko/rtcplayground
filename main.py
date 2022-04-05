@@ -84,5 +84,5 @@ def estimatorTest(tracePath, estimatorTag):
 traceFiles = glob.glob(f"./testtraces/*.json")
 for ele in traceFiles:
 	estimatorTest(ele, 0)
-for ele in traceFiles:
-	estimatorTest(ele, 1)
+# for ele in traceFiles:
+# 	estimatorTest(ele, 1)
