@@ -71,21 +71,24 @@ class RateController:
 	
 	def increase(self) -> float:
 		
+		result = self.lastTargetRate
+		
 		if self.rateAverage > 0 and (self.rateAverage - 3 * self.rateAverageStd) <= self.rateHat <= (
 				self.rateAverage + 3 * self.rateAverageStd):
 			# additive scheme
 			responseTime = 100 + self.lastRTT
 			alpha = 0.5 * min(1, self.lastRateUpdateTime / responseTime)
-			self.lastTargetRate = self.lastTargetRate + max(1000.0, alpha * self.expectedPktSizeBits())
+			result = self.lastTargetRate + max(1000.0, alpha * self.expectedPktSizeBits())
 			self.lastRateUpdateTime = self.nowTime
-			return self.lastTargetRate
-		eta = self.increaseFactor ** min(self.lastRateUpdateTime / 1000, 1)
-		self.lastTargetRate = eta * self.lastTargetRate
+		else:
+			eta = self.increaseFactor ** min(self.lastRateUpdateTime / 1000, 1)
+			result = eta * self.lastTargetRate
 		
-		if self.lastTargetRate > 1.5 * self.rateHat:
-			self.lastTargetRate = 1.5 * self.rateHat
+		if result > 1.5 * self.rateHat:
+			result = 1.5 * self.rateHat
 		
 		self.lastRateUpdateTime = self.nowTime
+		self.lastTargetRate = result
 		return self.lastTargetRate
 	
 	def decrease(self) -> float:
