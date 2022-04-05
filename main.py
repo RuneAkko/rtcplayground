@@ -1,8 +1,7 @@
 import glob
 
 from offlineStatTest import writeStatsReports
-from plot.drawCurve import Line
-from plot.drawCurve import draw
+from plot.plotTool import Line, drawLine
 from rtc_env import GymEnv
 from utils.trace_analyse import readTrace, preprocess
 
@@ -56,6 +55,8 @@ def estimatorTest(tracePath, estimatorTag):
 		targetRate.append(rate)
 		netDataList.append(netData)
 	
+	dirName = "fig"
+	
 	capCurve = scaleTraceCap(tracePath)
 	
 	gccRate = Line()
@@ -73,8 +74,8 @@ def estimatorTest(tracePath, estimatorTag):
 	delayCurve.x = stepList
 	delayCurve.y = delayList
 	
-	draw(traceName + "-rate-" + estimationName, gccRate, recvRate)
-	draw(traceName + "-delay-" + estimationName, delayCurve)
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate)
+	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
 	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	writeStatsReports(netDataSavePath, netDataList)

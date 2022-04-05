@@ -61,7 +61,7 @@ class TrendLineFilter:
 			self.sampleY.append(y)
 			self.sampleX.append(x)
 		
-		# todo: 估计 delay gradient 只用 windowsSize * burstInterval 时间内(0.1s)的数据，丢弃多余的
+		# todo: 估计 delay gradient 只用 windowsSize
 		if len(self.sampleX) >= self.windowSize:
 			logging.info("sample List of accDelay : [%s]", self.sampleY)
 			logging.info("sample List of time: [%s]", self.sampleX)

@@ -3,7 +3,7 @@ import logging
 import os.path
 
 from gcc.main_estimator import mainEstimator
-from plot.drawCurve import draw, Line
+from plot.plotTool import drawLine, Line
 
 
 def writeStatsReports(path, data):
@@ -31,10 +31,13 @@ def readStatsReports(path):
 	return stats_reports
 
 
+INIT_BANDWIDTH = 3000 * 1000  # 3m bps
+
+
 class testEnv:
 	def __init__(self, netData):
 		self.step_time = 60  # ms
-		self.estimator = mainEstimator()
+		self.estimator = mainEstimator(INIT_BANDWIDTH)
 		self.lastEstimationTs = 0
 		self.testReports = netData
 	
@@ -51,8 +54,8 @@ class testEnv:
 				self.lastEstimationTs = nowTs
 				targetRate = self.estimator.get_estimated_bandwidth()
 		
-		recvRate, _, _, _ = self.calculateNetQos()
-		
+		recvRate, delay, _, _ = self.calculateNetQos()
+		logging.info("average delay [%s]", delay)
 		return targetRate, recvRate
 	
 	def calculateNetQos(self):
@@ -75,7 +78,7 @@ if __name__ == "__main__":
 	DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
 	logging.basicConfig(filename="test.log", level=logging.INFO, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 	
-	netDataPath = "./netData/5G_12mbps_netData"
+	netDataPath = "./netData/new_version2_4G_500kbps_1_trace_netData_OwnGCC"
 	reports = readStatsReports(netDataPath)
 	
 	step = 0
@@ -84,9 +87,11 @@ if __name__ == "__main__":
 	env = testEnv(reports)
 	gccRate = env.estimator.predictionBandwidth
 	rates = [gccRate]
+	recvRates = [0]
 	while step < maxStep:
-		gccRate, _ = env.test(gccRate, step)
+		gccRate, recvRate = env.test(gccRate, step)
 		rates.append(gccRate)
+		recvRates.append(recvRate)
 		step += 1
 		stepList.append(step)
 	
@@ -96,7 +101,12 @@ if __name__ == "__main__":
 	gccRateFig.x = stepList
 	gccRateFig.y = [x / 1000000 for x in rates]
 	
-	draw(name, gccRateFig)
+	recvRateFig = Line()
+	recvRateFig.name = name + "-recvRate"
+	recvRateFig.x = stepList
+	recvRateFig.y = [x / 1000000 for x in recvRates]
 	
-	with open(name + "-testGccRate", "w") as f:
-		f.write(str(gccRateFig.y))
+	drawLine("localtest", name, gccRateFig, recvRateFig)
+
+# with open(name + "-testGccRate", "w") as f:
+# 	f.write(str(gccRateFig.y))

@@ -8,7 +8,6 @@ class ArrivalFilter:
 	def __init__(self, burst):
 		self.burstInterval = burst
 		self.pktGroups = []
-		self.pktsInfo = []
 		self.groupNum = 0
 	
 	def preFilter(self, pktsInfo: List[pktInfo]):
@@ -52,7 +51,7 @@ class ArrivalFilter:
 		arrivalTimes = [self.pktGroups[0].arrivalTs]
 		last = self.pktGroups[0]
 		for group in self.pktGroups[1:]:
-			measurement = (last.arrivalTs - group.arrivalTs) - (last.sendTs - group.sendTs)
+			measurement = (group.arrivalTs - last.arrivalTs) - (group.sendTs - last.sendTs)
 			last = group
 			delayGradients.append(measurement)
 			arrivalTimes.append(group.arrivalTs)

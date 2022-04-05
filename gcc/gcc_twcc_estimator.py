@@ -47,6 +47,8 @@ class GCC(object):
 		self.rateCalculator = rateCalculator()
 		
 		self.rttCalculator = rttCalculator()
+		
+		self.inflightGroups = []
 	
 	def setIntervalState(self, record: pktRecord):
 		self.record = copy.deepcopy(record)
@@ -72,27 +74,28 @@ class GCC(object):
 		self.totalGroupNum += self.arrivalFilter.groupNum
 		
 		logging.info("[in this interval] group num is [%s]", self.arrivalFilter.groupNum)
-		if self.arrivalFilter.groupNum < 2:
+		
+		if self.arrivalFilter.groupNum + len(self.inflightGroups) < 2:
+			self.inflightGroups += copy.deepcopy(self.arrivalFilter.pktGroups)
 			return self.predictionDelayBwe
+		self.arrivalFilter.pktGroups = self.inflightGroups + self.arrivalFilter.pktGroups
+		self.arrivalFilter.groupNum = len(self.arrivalFilter.pktGroups)
+		self.inflightGroups = []
 		
 		delayDelta, arrivalTs = self.arrivalFilter.measured_groupDelay_deltas()
 		logging.info("[in this interval] delayDelta from group is [%s]", delayDelta)
-		# logging.info("[in this interval] arrivalTs from group is [%s]", arrivalTs)
-		
-		# self.tlf.firstGroupTs = self.arrivalFilter.pktGroups[0].arrivalTs
 		
 		queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
-		logging.info("[in this interval] queueDelayDelta is [%s]", queueDelayDelta)
 		
 		# gradient 没变化，带宽估计不变
 		if queueDelayDelta == 0:
 			return self.predictionDelayBwe
 		
 		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
-		#
 		estimateQueueDelayDuration = queueDelayDelta * \
 		                             min(self.tlf.numCount, self.minGroupNum)
-		
+		logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
+		             estimateQueueDelayDuration, queueDelayDelta, self.tlf.numCount)
 		# # # 从本 interval 第一个包发出，到最后一个包发出的时间
 		# currentIntervalDuration = self.arrivalFilter.pktGroups[0]
 		
