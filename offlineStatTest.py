@@ -75,8 +75,8 @@ class testEnv:
 		if len(self.testReports[stepNum]) > 2:
 			nowTs = self.estimator.gcc.currentTimestamp
 			if (nowTs - self.lastEstimationTs) >= 200:
-				logging.info("nowTs is [%s], lastTs is [%s]", nowTs, self.lastEstimationTs)
 				self.lastEstimationTs = nowTs
+				logging.info("now time :[%s]", nowTs)
 				targetRate = self.estimator.get_estimated_bandwidth()
 		
 		if targetRate != 0:
@@ -94,6 +94,7 @@ class testEnv:
 		next_targetRate = self.lastBwe
 		if len(pkt_list) > 0:
 			now_ts = get_time_ms() - self.estimator.first_time
+			logging.info("now time : [%s]", now_ts)
 			self.estimator.gcc_ack_bitrate.ack_estimator_incoming(pkt_list)
 			result = self.estimator.gcc_rate_controller.delay_bwe_incoming(
 				pkt_list, self.estimator.gcc_ack_bitrate.ack_estimator_bitrate_bps(),
@@ -151,9 +152,9 @@ if __name__ == "__main__":
 	tag = 0
 	
 	if tag == 0:
-		netDataPath = "./netData/new_version2_4G_500kbps_1_trace_netData_OwnGCC"
+		netDataPath = "./netData/new_version2_5G_13mbps_1_trace_netData_OwnGCC"
 	else:
-		netDataPath = "./netData/new_version2_4G_500kbps_1_trace_netData_GeminiGCC"
+		netDataPath = "./netData/new_version2_5G_13mbps_1_trace_netData_GeminiGCC"
 	
 	logName = "test" + str(tag) + ".log"
 	
