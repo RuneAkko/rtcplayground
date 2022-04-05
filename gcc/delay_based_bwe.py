@@ -4,18 +4,18 @@ class DelayBasedBwe:
 		self.increaseFactor = 1.05
 		self.lastBwe = 0
 		self.recentlyRate = 0
-		self.state = None  # delay based rate controller system state
+		self.state = None  # delay based rate controller system pre_state
 
 # def increase(self) -> int:
-# 	self.state = State.INCREASE
+# 	self.pre_state = State.INCREASE
 # 	return int(self.increaseFactor * self.lastBwe)
 #
 # def decrease(self) -> int:
-# 	self.state = State.DECREASE
+# 	self.pre_state = State.DECREASE
 # 	return int(self.decreaseFactor * self.recentlyRate)
 #
 # def hold(self) -> int:
-# 	self.state = State.HOLD
+# 	self.pre_state = State.HOLD
 # 	return self.lastBwe
 #
 # def delayBasedBwe(self, lastBwe, signal, recentlyRate) -> int:

@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 import time
@@ -181,6 +183,8 @@ class delay_base_bwe:
 		for pkt in packet_list:
 			# 这个可能需要修改
 			# print("here",pkt["send_time_ms"],self.first_ts)
+			if len(pkt) <= 0:
+				continue
 			if pkt["send_time_ms"] < self.first_ts:
 				continue
 			delay_feedback = -1
@@ -207,5 +211,5 @@ class delay_base_bwe:
 			return self.__delay_bwe_maybe_update(overusing, acked_bitrate,
 			                                     recovered_from_overuse,
 			                                     now_ts)
-		
+		logging.info("aimd control rate is [%s]mbps", result.bitrate / 1000000)
 		return result

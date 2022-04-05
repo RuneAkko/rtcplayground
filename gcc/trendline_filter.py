@@ -63,7 +63,7 @@ class TrendLineFilter:
 		
 		# todo: 估计 delay gradient 只用 windowsSize
 		if len(self.sampleX) >= self.windowSize:
-			logging.info("sample List of accDelay : [%s]", self.sampleY)
+			logging.info("sample List of smoothedDelay : [%s]", self.sampleY)
 			logging.info("sample List of time: [%s]", self.sampleX)
 			self.trendLine = self._linearFit()
 			logging.info("update trend: [%s]", self.trendLine)

@@ -78,6 +78,7 @@ class GCC(object):
 		if self.arrivalFilter.groupNum + len(self.inflightGroups) < 2:
 			self.inflightGroups += copy.deepcopy(self.arrivalFilter.pktGroups)
 			return self.predictionDelayBwe
+		
 		self.arrivalFilter.pktGroups = self.inflightGroups + self.arrivalFilter.pktGroups
 		self.arrivalFilter.groupNum = len(self.arrivalFilter.pktGroups)
 		self.inflightGroups = []
@@ -87,28 +88,29 @@ class GCC(object):
 		
 		queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
 		
-		# gradient 没变化，带宽估计不变
-		if queueDelayDelta == 0:
-			return self.predictionDelayBwe
+		# # gradient 没变化，带宽估计不变
+		# if queueDelayDelta == 0:
+		# 	return self.predictionDelayBwe
 		
 		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
 		estimateQueueDelayDuration = queueDelayDelta * \
 		                             min(self.tlf.numCount, self.minGroupNum)
 		logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
-		             estimateQueueDelayDuration, queueDelayDelta, self.tlf.numCount)
+		             estimateQueueDelayDuration, queueDelayDelta, min(self.tlf.numCount, self.minGroupNum))
+		
 		# # # 从本 interval 第一个包发出，到最后一个包发出的时间
 		# currentIntervalDuration = self.arrivalFilter.pktGroups[0]
 		
 		self.overUseDetector.totalGroupNum = self.totalGroupNum
 		
-		s = self.overUseDetector.detect(estimateQueueDelayDuration, self.currentTimestamp)
-		logging.info("[in this interval] signal is [%s]",
-		             s)
-		logging.info("[in this interval] adaptiveThresholdGamma is [%s]",
+		signal = self.overUseDetector.detect(estimateQueueDelayDuration, self.currentTimestamp)
+		logging.info("signal is [%s]",
+		             signal)
+		logging.info("adaptiveThresholdGamma is [%s]",
 		             self.overUseDetector.adaptiveThreshold.thresholdGamma)
-		# state transition
-		state = self.stateMachine.transition(s)
-		logging.info("[in this interval] state is [%s]",
+		# pre_state transition
+		state = self.stateMachine.transition(signal)
+		logging.info("[in this interval] pre_state is [%s]",
 		             state)
 		# aimd control rate
 		rate = self.rateController.aimdControl(state, self.rateCalculator.rateHat, self.currentTimestamp,
