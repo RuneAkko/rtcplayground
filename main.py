@@ -1,84 +1,96 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+import glob
 
-import os
+from scipy.signal import savgol_filter
 
-import torch
-import matplotlib.pyplot as plt
-
-import draw
+from offlineStatTest import writeStatsReports
+from plot.plotTool import Line, drawLine
 from rtc_env import GymEnv
-from deep_rl.storage import Storage
-from deep_rl.ppo_agent import PPO
+from utils.trace_analyse import genTraceCap
+from utils.trace_analyse import readTrace, preprocess
 
 
-def main():
-    ############## Hyperparameters for the experiments ##############
-    env_name = "AlphaRTC"
-    max_num_episodes = 5      # maximal episodes
-
-    update_interval = 4000      # update policy every update_interval timesteps
-    save_interval = 2          # save model every save_interval episode
-    exploration_param = 0.05    # the std var of action distribution
-    K_epochs = 37               # update policy for K_epochs
-    ppo_clip = 0.2              # clip parameter of PPO
-    gamma = 0.99                # discount factor
-
-    lr = 3e-5                 # Adam parameters
-    betas = (0.9, 0.999)
-    state_dim = 4
-    action_dim = 1
-    data_path = f'./data/' # Save model and reward curve here
-    #############################################
-
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
-
-    env = GymEnv()
-    storage = Storage() # used for storing data
-    ppo = PPO(state_dim, action_dim, exploration_param, lr, betas, gamma, K_epochs, ppo_clip)
-
-    record_episode_reward = []
-    episode_reward  = 0
-    time_step = 0
-
-    # training loop
-    for episode in range(max_num_episodes):
-        while time_step < update_interval:
-            done = False            
-            state = torch.Tensor(env.reset())
-            while not done and time_step < update_interval:
-                action = ppo.select_action(state, storage)
-                state, reward, done, _ = env.step(action)
-                state = torch.Tensor(state)
-                # Collect data for update
-                storage.rewards.append(reward)
-                storage.is_terminals.append(done)
-                time_step += 1
-                episode_reward += reward
-
-        next_value = ppo.get_value(state)
-        storage.compute_returns(next_value, gamma)
-
-        # update
-        policy_loss, val_loss = ppo.update(storage, state)
-        storage.clear_storage()
-        episode_reward /= time_step
-        record_episode_reward.append(episode_reward)
-        print('Episode {} \t Average policy loss, value loss, reward {}, {}, {}'.format(episode, policy_loss, val_loss, episode_reward))
-
-        if episode > 0 and not (episode % save_interval):
-            ppo.save_model(data_path)
-            plt.plot(range(len(record_episode_reward)), record_episode_reward)
-            plt.xlabel('Episode')
-            plt.ylabel('Averaged episode reward')
-            plt.savefig('%sreward_record.jpg' % (data_path))
-
-        episode_reward = 0
-        time_step = 0
-
-    draw.draw_module(ppo.policy, data_path)
+def scaleTraceCap(tracePath) -> Line:
+	traceName, ts = readTrace(tracePath)
+	ts = preprocess(ts)
+	traceCap = Line()
+	y = [tmp.capacity for tmp in ts]
+	x = [tmp.time / 60 for tmp in ts]
+	traceCap.x = x
+	traceCap.y = y
+	return traceCap
 
 
-if __name__ == '__main__':
-    main()
+def estimatorTest(tracePath, estimatorTag):
+	if estimatorTag == 0:
+		estimationName = "OwnGCC"
+		testversion = "1"
+	else:
+		estimationName = "GeminiGCC"
+		testversion = "2"
+	
+	env = GymEnv()
+	traceName, tracePatterns = readTrace(tracePath)
+	
+	env.setAlphaRtcGym(tracePath)
+	
+	max_step = 100000
+	traceDone = False
+	step = 0
+	
+	recvList = [0]
+	stepList = [step]
+	delayList = [0]
+	
+	rate = env.lastBwe
+	
+	targetRate = [rate]
+	netDataList = []
+	
+	while not traceDone and step < max_step:
+		if estimatorTag == 0:
+			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV1(rate)
+		else:
+			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV2(rate)
+		recvList.append(recvRate)
+		step += 1
+		stepList.append(step)
+		delayList.append(delay)
+		targetRate.append(rate)
+		netDataList.append(netData)
+	
+	dirName = "fig"
+	
+	capCurve = scaleTraceCap(tracePath)
+	
+	gccRate = Line()
+	gccRate.name = traceName + "-gccRate" + "-" + estimationName
+	gccRate.x = stepList
+	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
+	gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
+	
+	recvRate = Line()
+	recvRate.name = traceName + "-recvRate" + "-" + estimationName
+	recvRate.x = stepList
+	recvRate.y = [x / 1000000 for x in recvList]  # mbps
+	recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
+	
+	delayCurve = Line()
+	delayCurve.name = traceName + "-delay-" + estimationName
+	delayCurve.x = stepList
+	delayCurve.y = delayList
+	delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
+	
+	traceCap = genTraceCap(tracePath)
+	
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
+	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
+	
+	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+	writeStatsReports(netDataSavePath, netDataList)
+
+
+traceFiles = glob.glob(f"./testtraces/*.json")
+for ele in traceFiles:
+	estimatorTest(ele, 0)
+# for ele in traceFiles:
+# 	estimatorTest(ele, 1)
