@@ -12,16 +12,16 @@ from rtc_env import GymEnv
 def main():
 	############## Hyperparameters for the experiments ##############
 	env_name = "AlphaRTC"
-	max_num_episodes = 5  # maximal episodes
+	max_num_episodes = 2000  # maximal episodes
 	
 	update_interval = 4000  # update policy every update_interval time steps
-	save_interval = 2  # save model every save_interval episode
+	save_interval = 5  # save model every save_interval episode
 	exploration_param = 0.05  # the std var of action distribution
-	K_epochs = 37  # update policy for K_epochs
+	K_epochs = 32  # update policy for K_epochs
 	ppo_clip = 0.2  # clip parameter of PPO
-	gamma = 0.99  # discount factor
+	gamma = 0.95  # discount factor
 	
-	lr = 3e-5  # Adam parameters
+	lr = 5e-3  # Adam parameters
 	betas = (0.9, 0.999)
 	state_dim = 5  #
 	action_dim = 1  #
