@@ -7,10 +7,10 @@ import sys
 import time
 
 import numpy as np
-from gym import spaces
 
 from gcc.main_estimator import mainEstimator
 from geminiGCC.main_estimator import mainGeminiEstimator, get_time_ms
+from gym import spaces
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
 
@@ -177,7 +177,7 @@ class GymEnv:
 		lastGccBwe = self.packet_record.calculate_latest_prediction()
 		return recv_rate, delay, loss, lastGccBwe
 	
-	def setTrainTrace(self, path):
+	def setTraces(self, path):
 		self.train_trace_set = glob.glob(f'{path}/*.json', recursive=True)
 	
 	def reset(self):

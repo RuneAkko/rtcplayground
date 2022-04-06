@@ -23,7 +23,7 @@ def main():
 	
 	lr = 3e-5  # Adam parameters
 	betas = (0.9, 0.999)
-	state_dim = 4  #
+	state_dim = 5  #
 	action_dim = 1  #
 	data_path = f'./data/'  # Save model and reward curve here
 	#############################################
@@ -32,7 +32,7 @@ def main():
 		os.makedirs(data_path)
 	
 	env = GymEnv()
-	env.setTrainTrace("./mytraces/trainTraces")
+	env.setTraces("./mytraces/trainTraces")
 	storage = Storage()  # used for storing data
 	ppo = PPO(state_dim, action_dim, exploration_param, lr, betas, gamma, K_epochs, ppo_clip)
 	
