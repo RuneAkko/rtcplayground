@@ -117,7 +117,7 @@ def genTraceCap(path) -> Line:
 
 if __name__ == "__main__":
 	figSavePath = "traceFig/"
-	traceFiles = glob.glob(f"../testtraces/*.json")
+	traceFiles = glob.glob(f"../mytraces/*.json")
 	for ele in traceFiles:
 		name, tmpp = readTrace(ele)
 		data = preprocess(tmpp)

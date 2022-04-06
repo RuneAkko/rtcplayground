@@ -32,6 +32,7 @@ def main():
 		os.makedirs(data_path)
 	
 	env = GymEnv()
+	env.setTrainTrace("./mytraces/trainTraces")
 	storage = Storage()  # used for storing data
 	ppo = PPO(state_dim, action_dim, exploration_param, lr, betas, gamma, K_epochs, ppo_clip)
 	

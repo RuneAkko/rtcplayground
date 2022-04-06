@@ -7,10 +7,10 @@ import sys
 import time
 
 import numpy as np
+from gym import spaces
 
 from gcc.main_estimator import mainEstimator
 from geminiGCC.main_estimator import mainGeminiEstimator, get_time_ms
-from gym import spaces
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
 
@@ -183,7 +183,7 @@ class GymEnv:
 	def reset(self):
 		"""
 		
-		:return: state [4]
+		:return: state [5]
 		"""
 		self.packet_record.reset()
 		self.gym_env = alphartc_gym.Gym()

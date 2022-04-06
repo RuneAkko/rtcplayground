@@ -154,7 +154,7 @@ if __name__ == "__main__":
 	
 	tag = 1
 	
-	tracePath = "./testtraces/new_version2_4G_3mbps_2_trace.json"
+	tracePath = "./mytraces/new_version2_4G_3mbps_2_trace.json"
 	if tag == 0:
 		netDataPath = "./netData/new_version2_4G_3mbps_2_trace_netData_OwnGCC"
 	else:

@@ -89,7 +89,7 @@ def estimatorTest(tracePath, estimatorTag):
 	writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"./testtraces/*.json")
+traceFiles = glob.glob(f"mytraces/*.json", recursive=False)
 for ele in traceFiles:
 	estimatorTest(ele, 0)
 # for ele in traceFiles:
