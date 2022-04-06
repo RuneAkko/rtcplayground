@@ -17,3 +17,8 @@ class interfaceState(Enum):
 	INIT = "init"
 	REPORT = "report"
 	ESTIMATE = "estimate"
+
+
+class aimdType(Enum):
+	MAX_UNKNOWN = "max_unknown"
+	NEAR_MAX = "near_max"

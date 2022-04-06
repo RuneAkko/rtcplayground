@@ -84,6 +84,7 @@ class testEnv:
 		
 		recvRate, delay, _, _ = self.calculateNetQos()
 		logging.info("average delay [%s]", delay)
+		logging.info("recv rate [%s]mbps", recvRate / 1000000)
 		return self.lastBwe, recvRate
 	
 	def testV2(self, targetRate, stepNum):
@@ -149,7 +150,7 @@ class testEnv:
 
 if __name__ == "__main__":
 	
-	tag = 0
+	tag = 1
 	
 	if tag == 0:
 		netDataPath = "./netData/new_version2_5G_13mbps_1_trace_netData_OwnGCC"

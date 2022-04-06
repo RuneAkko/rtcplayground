@@ -1,6 +1,6 @@
 import math
 
-from utils.my_enum import State
+from utils.my_enum import State, aimdType
 
 
 class RateController:
@@ -10,10 +10,11 @@ class RateController:
 		"""
 		self.lastRTT = None
 		self.rateHat = 0  # bps
+		self.rateHatKbps = 0  # kbps
 		
-		self.rateAverage = -1.0
-		self.rateAverageVar = 0.4
-		self.rateAverageStd = math.sqrt(self.rateAverageVar)
+		self.average_max_rate_kbps = -1.0
+		self.average_max_rate_kbps_var = 0.4
+		self.average_max_rate_kbps_std = math.sqrt(self.average_max_rate_kbps_var)
 		
 		# self.maxRate = 0
 		# self.minRate = 0
@@ -25,35 +26,34 @@ class RateController:
 		self.decreaseFactor = 0.85
 		self.increaseFactor = 1.05
 		
-		self.type = "Multi"
+		self.type = aimdType.MAX_UNKNOWN
 	
-	def _updateRateHatAverageWithEMA(self, measureRate):
+	def _updateRateHatAverageWithEMA(self, measureRateKbps):
 		alpha = 0.05
 		"""
-		rateHat(i) = rateHat(i-1) + alpha * (measureRate - rateHat(i-1))
+		rateHat(i) = rateHat(i-1) + alpha * (measureRateKbps - rateHat(i-1))
 		var(i) = (1-alpha)*alpha*(measureRat-rateHat(i-1))^2 + (1-alpha)*var(i-1)
 		"""
-		if self.rateAverage == -1.0:
-			self.rateAverage = measureRate
+		if self.average_max_rate_kbps == -1.0:
+			self.average_max_rate_kbps = measureRateKbps
 		else:
-			
-			self.rateAverage += (1 - alpha) * self.rateAverage + alpha * measureRate
-			
-			err = self.rateAverage - measureRate
-			norm = max(self.rateAverage, 1.0)
-			
-			self.rateAverageVar = (1 - alpha) * self.rateAverageVar + alpha * err * err / norm
-			"""
-			// 0.4 ~= 14 kbit/s at 500 kbit/s
-            // 2.5f ~= 35 kbit/s at 500 kbit/s
-            deviation_kbps_ = rtc::SafeClamp(deviation_kbps_, 0.4f, 2.5f);
-			"""
-			if self.rateAverageVar < 0.4:
-				self.rateAverageVar = 0.4
-			if self.rateAverageVar > 2.5:
-				self.rateAverageVar = 2.5
-			
-			self.rateAverageStd = math.sqrt(self.rateAverageVar)
+			self.average_max_rate_kbps = (1 - alpha) * self.average_max_rate_kbps + alpha * measureRateKbps
+		
+		err = self.average_max_rate_kbps - measureRateKbps
+		norm = max(self.average_max_rate_kbps, 1.0)
+		
+		self.average_max_rate_kbps_var = (1 - alpha) * self.average_max_rate_kbps_var + alpha * err * err / norm
+		"""
+		// 0.4 ~= 14 kbit/s at 500 kbit/s
+        // 2.5f ~= 35 kbit/s at 500 kbit/s
+        deviation_kbps_ = rtc::SafeClamp(deviation_kbps_, 0.4f, 2.5f);
+		"""
+		if self.average_max_rate_kbps_var < 0.4:
+			self.average_max_rate_kbps_var = 0.4
+		if self.average_max_rate_kbps_var > 2.5:
+			self.average_max_rate_kbps_var = 2.5
+		
+		self.average_max_rate_kbps_std = math.sqrt(self.average_max_rate_kbps_var)
 	
 	def aimdControl(self, state: State, rateHat, nowTime, rtt) -> float:
 		"""
@@ -64,10 +64,11 @@ class RateController:
 		:param state:
 		:return:
 		"""
-		self._updateRateHatAverageWithEMA(rateHat)
-		self.rateHat = rateHat
+		self.rateHat = rateHat  # bps
+		self.rateHatKbps = self.rateHat / 1000  # kbps
 		self.lastRTT = rtt
 		self.nowTime = nowTime
+		self._updateRateHatAverageWithEMA(self.rateHatKbps)
 		
 		if state == State.INCREASE:
 			return self.increase()
@@ -79,12 +80,12 @@ class RateController:
 	def increase(self) -> float:
 		
 		result = self.lastTargetRate
-		if self.rateAverage >= 0 and self.rateHat > self.rateAverage + 3 * self.rateAverageStd:
+		if self.average_max_rate_kbps >= 0 and self.rateHatKbps > self.average_max_rate_kbps + 3 * self.average_max_rate_kbps_std:
 			# 离链路可用带宽依然遥远，
-			self.type = "Multi"
-			self.rateAverage = -1.0
+			self.type = aimdType.MAX_UNKNOWN
+			self.average_max_rate_kbps = -1.0
 		
-		if self.type == "Additive":
+		if self.type == aimdType.NEAR_MAX:
 			# 靠近可用带宽上限，加性增
 			result = self.lastTargetRate + self.additiveType()
 		else:
@@ -100,16 +101,17 @@ class RateController:
 	
 	def decrease(self) -> float:
 		result = self.decreaseFactor * self.rateHat
+		
 		if result > self.lastTargetRate:
 			if self.type != "Multi":
-				result = (self.decreaseFactor * self.rateAverage)
+				result = (self.decreaseFactor * self.average_max_rate_kbps * 1000)
 			result = min(result, self.lastTargetRate)
 		
 		self.type = "Additive"
 		
-		if self.rateHat < self.rateAverage - 3 * self.rateAverageStd:
-			self.rateAverage = -1.0
-		self._updateRateHatAverageWithEMA(self.rateHat)
+		if self.rateHatKbps < self.average_max_rate_kbps - 3 * self.average_max_rate_kbps_std:
+			self.average_max_rate_kbps = -1.0
+		self._updateRateHatAverageWithEMA(self.rateHatKbps)
 		
 		self.lastRateUpdateTime = self.nowTime
 		self.lastTargetRate = result
@@ -122,8 +124,9 @@ class RateController:
 	
 	def additiveType(self):
 		# additive scheme
+		# return bps
 		responseTime = 100 + self.lastRTT
-		alpha = min(1.0, (self.nowTime - self.lastRateUpdateTime) / responseTime)
+		alpha = 0.5 * min(1.0, (self.nowTime - self.lastRateUpdateTime) / responseTime)
 		result = max(1000.0, alpha * self.expectedPktSizeBits())
 		return result
 	

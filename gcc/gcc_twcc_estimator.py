@@ -115,7 +115,7 @@ class GCC(object):
 		# aimd control rate
 		rate = self.rateController.aimdControl(state, self.rateCalculator.rateHat, self.currentTimestamp,
 		                                       self.rttCalculator.rtt)
-		logging.info("[in this interval] now real rate is [%s]mbps",
+		logging.info("[in this interval] rateHat is [%s]mbps",
 		             self.rateCalculator.rateHat / 1000000)
 		logging.info("[in this interval] now real rtt is [%s]",
 		             self.rttCalculator.rtt)
