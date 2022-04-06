@@ -1,3 +1,4 @@
+import logging
 import math
 
 from utils.my_enum import State, aimdType
@@ -75,6 +76,7 @@ class RateController:
 		elif state == State.DECREASE:
 			return self.decrease()
 		else:
+			logging.info("state is [Hold]")
 			return self.lastTargetRate
 	
 	def increase(self) -> float:
@@ -83,13 +85,15 @@ class RateController:
 		if self.average_max_rate_kbps >= 0 and self.rateHatKbps > self.average_max_rate_kbps + 3 * self.average_max_rate_kbps_std:
 			# 离链路可用带宽依然遥远，
 			self.type = aimdType.MAX_UNKNOWN
-			# self.average_max_rate_kbps = -1.0
+		# self.average_max_rate_kbps = -1.0
 		
 		if self.type == aimdType.NEAR_MAX:
 			# 靠近可用带宽上限，加性增
+			logging.info("state is [Increase] [NearMax]")
 			result = self.lastTargetRate + self.additiveType()
 		else:
 			# 乘性增
+			logging.info("state is [Increase] [MaxUnknown]")
 			result = self.lastTargetRate + self.multiType()
 		
 		if result > 1.5 * self.rateHat:
@@ -100,6 +104,7 @@ class RateController:
 		return self.lastTargetRate
 	
 	def decrease(self) -> float:
+		logging.info("state is [Decrease]")
 		result = self.decreaseFactor * self.rateHat
 		
 		if result > self.lastTargetRate:

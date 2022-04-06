@@ -1,4 +1,6 @@
 # aimd控制器  Additive Increase Multiplicative Decrease 和式增加，积式减少
+import logging
+
 import numpy as np
 
 kBwNormal = 0
@@ -176,7 +178,7 @@ class Aimd_rate_controller:
 			max_kbitrate = 0
 		
 		if self.state == kRcHold:
-			# print("kRcHold")
+			logging.info("state is [Hold]")
 			nothing_happened = True
 		elif self.state == kRcIncrease:
 			# print("increase")
@@ -187,15 +189,18 @@ class Aimd_rate_controller:
 			
 			if self.region == kRcNearMax:  # 加性增
 				# print("加性增")
+				logging.info("state is [Increase] [NearMax]")
 				new_bitrate += self.__additive_rate_increase(
 					cur_ts, self.time_last_bitrate_change)
 			else:  # 起始阶段，进行倍数性增
 				# print("start 倍数性增")
+				logging.info("state is [Increase] [MaxUnknown]")
 				new_bitrate += self.__multiplicative_rate_increase(
 					cur_ts, self.time_last_bitrate_change, new_bitrate)
 			self.time_last_bitrate_change = cur_ts
 		elif self.state == kRcDecrease:
 			# print("Decrease")
+			logging.info("state is [Decrease]")
 			new_bitrate = (self.beta * self.input_incoming_bitrate + 0.5)
 			if new_bitrate > self.curr_rate:
 				if self.region != kRcMaxUnknown:

@@ -76,8 +76,8 @@ class testEnv:
 			nowTs = self.estimator.gcc.currentTimestamp
 			if (nowTs - self.lastEstimationTs) >= 200:
 				self.lastEstimationTs = nowTs
-				logging.info("now time :[%s]", nowTs)
-				targetRate = self.estimator.get_estimated_bandwidth()
+			logging.info("now time :[%s]", nowTs)
+			targetRate = self.estimator.get_estimated_bandwidth()
 		
 		if targetRate != 0:
 			self.lastBwe = targetRate
@@ -123,6 +123,7 @@ class testEnv:
 		qos1, qos2, qos3, qos4 = self.calculateNetQosV2()
 		logging.info("average delay [%s]", qos2)
 		logging.info("target rate [%s] mbps", self.lastBwe / 1000000)
+		logging.info("recv rate [%s]mbps", qos1 / 1000000)
 		return self.lastBwe, qos1
 	
 	# return self.lastBwe, 0
@@ -153,9 +154,9 @@ if __name__ == "__main__":
 	tag = 1
 	
 	if tag == 0:
-		netDataPath = "./netData/new_version2_5G_13mbps_1_trace_netData_OwnGCC"
+		netDataPath = "./netData/new_version2_4G_3mbps_2_trace_netData_OwnGCC"
 	else:
-		netDataPath = "./netData/new_version2_5G_13mbps_1_trace_netData_GeminiGCC"
+		netDataPath = "./netData/new_version2_4G_3mbps_2_trace_netData_GeminiGCC"
 	
 	logName = "test" + str(tag) + ".log"
 	

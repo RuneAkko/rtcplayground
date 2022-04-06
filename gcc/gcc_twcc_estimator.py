@@ -110,8 +110,8 @@ class GCC(object):
 		             self.overUseDetector.adaptiveThreshold.thresholdGamma)
 		# pre_state transition
 		state = self.stateMachine.transition(signal)
-		logging.info("[in this interval] pre_state is [%s]",
-		             state)
+		# logging.info("[in this interval] pre_state is [%s]",
+		#              state)
 		# aimd control rate
 		rate = self.rateController.aimdControl(state, self.rateCalculator.rateHat, self.currentTimestamp,
 		                                       self.rttCalculator.rtt)
