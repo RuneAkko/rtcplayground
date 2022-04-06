@@ -83,7 +83,7 @@ class RateController:
 		if self.average_max_rate_kbps >= 0 and self.rateHatKbps > self.average_max_rate_kbps + 3 * self.average_max_rate_kbps_std:
 			# 离链路可用带宽依然遥远，
 			self.type = aimdType.MAX_UNKNOWN
-			self.average_max_rate_kbps = -1.0
+			# self.average_max_rate_kbps = -1.0
 		
 		if self.type == aimdType.NEAR_MAX:
 			# 靠近可用带宽上限，加性增
