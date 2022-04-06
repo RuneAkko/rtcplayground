@@ -20,7 +20,7 @@ def drawLine(dirName, bigName, *data: Line):
 		x = line.x  #
 		y = line.y  # 
 		name = line.name
-		plt.plot(y, label=name)
+		plt.plot(x, y, label=name)
 	plt.legend()
 	plt.savefig(dirName + "/" + bigName)
 	plt.show()

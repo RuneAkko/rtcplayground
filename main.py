@@ -1,8 +1,11 @@
 import glob
 
+from scipy.signal import savgol_filter
+
 from offlineStatTest import writeStatsReports
 from plot.plotTool import Line, drawLine
 from rtc_env import GymEnv
+from utils.trace_analyse import genTraceCap
 from utils.trace_analyse import readTrace, preprocess
 
 
@@ -63,18 +66,23 @@ def estimatorTest(tracePath, estimatorTag):
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
 	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
+	gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
 	
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
 	recvRate.y = [x / 1000000 for x in recvList]  # mbps
+	recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
 	
 	delayCurve = Line()
 	delayCurve.name = traceName + "-delay-" + estimationName
 	delayCurve.x = stepList
 	delayCurve.y = delayList
+	delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate)
+	traceCap = genTraceCap(tracePath)
+	
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
 	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName

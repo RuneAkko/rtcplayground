@@ -3,9 +3,12 @@ import logging
 import os.path
 import time
 
+from scipy.signal import savgol_filter
+
 from gcc.main_estimator import mainEstimator
 from geminiGCC.main_estimator import mainGeminiEstimator
 from plot.plotTool import drawLine, Line
+from utils.trace_analyse import genTraceCap
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
 
@@ -126,8 +129,6 @@ class testEnv:
 		logging.info("recv rate [%s]mbps", qos1 / 1000000)
 		return self.lastBwe, qos1
 	
-	# return self.lastBwe, 0
-	
 	def calculateNetQos(self):
 		recv_rate = self.estimator.pktsRecord.calculate_receiving_rate(
 			interval=self.step_time)
@@ -153,6 +154,7 @@ if __name__ == "__main__":
 	
 	tag = 1
 	
+	tracePath = "./testtraces/new_version2_4G_3mbps_2_trace.json"
 	if tag == 0:
 		netDataPath = "./netData/new_version2_4G_3mbps_2_trace_netData_OwnGCC"
 	else:
@@ -189,13 +191,14 @@ if __name__ == "__main__":
 	gccRateFig.name = name + "-targetRate"
 	gccRateFig.x = stepList
 	gccRateFig.y = [x / 1000000 for x in rates]
+	gccRateFig.y = savgol_filter(gccRateFig.y, 20, 1, mode="nearest")
 	
 	recvRateFig = Line()
 	recvRateFig.name = name + "-recvRate"
 	recvRateFig.x = stepList
 	recvRateFig.y = [x / 1000000 for x in recvRates]
+	recvRateFig.y = savgol_filter(recvRateFig.y, 20, 1, mode="nearest")
 	
-	drawLine("localtest", name, gccRateFig, recvRateFig)
-
-# with open(name + "-testGccRate", "w") as f:
-# 	f.write(str(gccRateFig.y))
+	traceCap = genTraceCap(tracePath)
+	
+	drawLine("localtest", name, gccRateFig, recvRateFig, traceCap)
