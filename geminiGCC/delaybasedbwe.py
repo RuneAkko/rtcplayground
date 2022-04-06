@@ -18,8 +18,8 @@ k_max_failed_count = 5
 
 # k_min_bitrate = 10000  #64000 #64kbps 需要修改
 # k_max_bitrate = 8000000  #12800000 #1.6MB/s 12800 kbps 需要修改
-k_min_bitrate = 80000  # 64000 #64kbps 需要修改
-k_max_bitrate = 20000000  # 12800000 #1.6MB/s 12800 kbps 需要修改
+k_min_bitrate = 0.01 * 1000000  # 0.01 mbps
+k_max_bitrate = 10 * 1000000  # 10 mbps #1.6MB/s 12800 kbps 需要修改
 
 k_timestamp_ms = 2000
 

@@ -7,7 +7,7 @@ BaseDelay = 200  # ms, 假设传播时延
 
 
 class mainEstimator(object):
-	def __init__(self, initialBwe):
+	def __init__(self, initialBwe, maxBwe, minBwe):
 		self.pktsRecord = pktRecord(BaseDelay)
 		self.pktsRecord.reset()
 		
@@ -17,6 +17,9 @@ class mainEstimator(object):
 		
 		# last interval value or initial value, bps, int
 		self.predictionBandwidth = initialBwe
+		
+		self.minBwe = minBwe
+		self.maxBwe = maxBwe
 	
 	def report_states(self, stats: dict):
 		"""
