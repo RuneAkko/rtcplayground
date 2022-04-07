@@ -50,19 +50,17 @@ def drlEstimatorTest(tracePath, modelPath):
 	
 	dirName = "fig"
 	
-	capCurve = scaleTraceCap(tracePath)
-	
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
 	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
+	gccRate.y = savgol_filter(gccRate.y, 21, 1, mode="nearest")
 	
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
 	recvRate.y = [x / 1000000 for x in recvList]  # mbps
-	recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
+	recvRate.y = savgol_filter(recvRate.y, 21, 1, mode="nearest")
 	
 	# delayCurve = Line()
 	# delayCurve.name = traceName + "-delay-" + estimationName
@@ -144,7 +142,10 @@ def estimatorTest(tracePath, estimatorTag):
 
 
 traceFiles = glob.glob(f"mytraces/*.json", recursive=False)
-for ele in traceFiles:
-	estimatorTest(ele, 0)
+model = "./model/ppo_2021_05_13_01_55_53.pth"
+# for ele in traceFiles:
+# 	estimatorTest(ele, 0)
 # for ele in traceFiles:
 # 	estimatorTest(ele, 1)
+for ele in traceFiles:
+	drlEstimatorTest(ele,model)

@@ -73,7 +73,7 @@ def drawCurve(data: List[TracePattern], attr, name, path):
 			y[i] = y[i - 1]
 	
 	x = [int(tmp / 60) for tmp in x]
-	y = savgol_filter(y, 20, 1, mode="nearest")
+	y = savgol_filter(y, 21, 1, mode="nearest")
 	plt.plot(x, y, label=name)
 	plt.xlabel("t/interval")
 	if attr == "capacity":
@@ -100,7 +100,7 @@ def drawCurveV2(data: List[TracePattern], attr, name):
 			y[i] = y[i - 1]
 	
 	x = [int(tmp / 60) for tmp in x]
-	y = savgol_filter(y, 20, 1, mode="nearest")
+	y = savgol_filter(y, 21, 1, mode="nearest")
 	
 	tmp = Line()
 	tmp.x = x
