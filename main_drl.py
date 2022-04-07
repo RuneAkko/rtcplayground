@@ -70,7 +70,7 @@ def main():
 			plt.plot(range(len(record_episode_reward)), record_episode_reward)
 			plt.xlabel('Episode')
 			plt.ylabel('Averaged episode reward')
-			plt.savefig('%sreward_record.jpg' % (data_path))
+			plt.savefig('%sreward_record_my.jpg' % (data_path))
 		
 		episode_reward = 0
 		interval_time_step = 0
