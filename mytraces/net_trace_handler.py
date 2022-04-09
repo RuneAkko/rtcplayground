@@ -140,7 +140,7 @@ def genNewTrace(storePath, num):
 			for ele in data:
 				traceP = TracePattern()
 				traceP.duration = time_step
-				traceP.capacity = ele
+				traceP.capacity = int(ele)
 				trace.tracePatterns.append(traceP)
 			trace.writeTraceFile(newTracePath)
 
@@ -159,4 +159,5 @@ def genNewTraceTest():
 
 if __name__ == "__main__":
 	# genNewTraceTest()
-	drawTraceCap(file="/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/*.json")
+	genNewTraceTrain()
+	# drawTraceCap(file="/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/*.json")
