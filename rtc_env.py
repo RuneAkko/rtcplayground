@@ -190,7 +190,6 @@ class GymEnv:
 		self.gym_env = alphartc_gym.Gym()
 		trace_path = random.choice(self.train_trace_set)
 		print(trace_path)
-		trace_path = "./mytraces/trace_example.json"
 		self.gym_env.reset(trace_path=trace_path,
 		                   report_interval_ms=self.step_time,
 		                   duration_time_ms=0)
