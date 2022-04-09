@@ -22,18 +22,18 @@ class TraceFig(object):
 
 class TracePattern(object):
 	def __init__(self):
-		self.duration = 0.0  # ms
-		self.capacity = 0.0  # mbps
-		self.loss = 0.0
-		self.jitter = 0.0
-		self.rtt = 0.0
+		self.duration = 0  # ms
+		self.capacity = 0  # mbps
+		self.loss = 0
+		self.jitter = 0
+		# self.rtt = 0.0
 		self.time = 0.0  # interval , 60ms
 
 
 def _dict2ts(_data: dict) -> TracePattern:
 	tmp = TracePattern()
 	accTime = 0
-	for index in ["duration", "capacity", "loss", "jitter", "rtt", "time"]:
+	for index in ["duration", "capacity", "loss", "jitter", "time"]:
 		v = _data.get(index, 0.0)
 		if index == "capacity":
 			v = v / 1000.0  # turn kbps unit to mbps
@@ -66,16 +66,19 @@ class Trace(object):
 	def writeTraceFile(self, newTraceFilePath):
 		if self.newTracePatterns is None:
 			self.newTracePatterns = self.tracePatterns
+		
 		template = {
+			"type": "video",
+			"downlink": {},
 			"uplink": {
 				"trace_pattern": []
 			}
 		}
 		for ele in self.newTracePatterns:
 			tmp = {}
-			for index in ["duration", "capacity", "loss", "jitter", "rtt", "time"]:
+			for index in ["duration", "capacity", "loss", "jitter", "time"]:
 				if index == "capacity":
-					tmp[index] = getattr(ele, index) * 1000.0  # mbps to kbps
+					tmp[index] = max(int(getattr(ele, index) * 1000), 50)  # mbps to kbps
 				else:
 					tmp[index] = getattr(ele, index)
 			template["uplink"]["trace_pattern"].append(tmp)
@@ -126,6 +129,7 @@ class Trace(object):
 		
 		plt.legend()
 		plt.savefig(fig.figSavePath + fig.title)
+		plt.show()
 		plt.close()
 	
 	def genFig(self, figSavePath="", line: Line = None):

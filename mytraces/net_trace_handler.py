@@ -55,6 +55,18 @@ def drawTraceCap(figSavePath="/Users/hansenma/mhspion/rtcplayground/mytraces/tra
 		t.draw(traceFig)
 
 
+def readTraceCap(file):
+	traceFiles = glob.glob(file,
+	                       recursive=False)
+	for ele in traceFiles:
+		t = Trace(ele)
+		t.readTraceFile()
+		t.preFilter()
+		for ele in t.tracePatterns:
+			if ele.capacity * 1000 < 50:
+				print(ele.capacity)
+
+
 def oriSmooth():
 	traceFiles = glob.glob("/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json", recursive=False)
 	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_smooth/"
@@ -140,7 +152,7 @@ def genNewTrace(storePath, num):
 			for ele in data:
 				traceP = TracePattern()
 				traceP.duration = time_step
-				traceP.capacity = int(ele)
+				traceP.capacity = ele
 				trace.tracePatterns.append(traceP)
 			trace.writeTraceFile(newTracePath)
 
@@ -159,5 +171,5 @@ def genNewTraceTest():
 
 if __name__ == "__main__":
 	# genNewTraceTest()
-	genNewTraceTrain()
-	# drawTraceCap(file="/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/*.json")
+	# genNewTraceTrain()
+	readTraceCap("/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/*.json")
