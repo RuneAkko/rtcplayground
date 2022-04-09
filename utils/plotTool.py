@@ -8,6 +8,7 @@ from more_itertools import chunked
 class Line:
 	def __init__(self):
 		self.name = None
+		self.attrName = None
 		self.x = []
 		self.y = []
 

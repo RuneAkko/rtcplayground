@@ -3,7 +3,6 @@ import os
 import matplotlib.pyplot as plt
 import torch
 
-import draw
 from deep_rl.ppo_agent import PPO
 from deep_rl.storage import Storage
 from rtc_env import GymEnv
@@ -12,7 +11,7 @@ from rtc_env import GymEnv
 def main():
 	############## Hyperparameters for the experiments ##############
 	env_name = "AlphaRTC"
-	max_num_episodes = 2000  # maximal episodes
+	max_num_episodes = 200  # maximal episodes
 	
 	update_interval = 4000  # update policy every update_interval time steps
 	save_interval = 5  # save model every save_interval episode
@@ -39,6 +38,7 @@ def main():
 	interval_time_step = 0
 	episode_reward = 0
 	record_episode_reward = []
+	
 	for episode in range(max_num_episodes):
 		
 		while interval_time_step < update_interval:
@@ -65,17 +65,19 @@ def main():
 		print('Episode {} \t Average policy loss, value loss, reward {}, {}, {}'.format(episode, policy_loss, val_loss,
 		                                                                                episode_reward))
 		
-		if episode > 0 and not (episode % save_interval):
+		if episode > 0 and not (episode % save_interval) or episode >= max_num_episodes - 10:
 			ppo.save_model(data_path)
 			plt.plot(range(len(record_episode_reward)), record_episode_reward)
 			plt.xlabel('Episode')
 			plt.ylabel('Averaged episode reward')
 			plt.savefig('%sreward_record_my.jpg' % (data_path))
+			plt.close()
 		
 		episode_reward = 0
 		interval_time_step = 0
-	
-	draw.draw_module(ppo.policy, data_path)
+
+
+# draw.draw_module(ppo.policy, data_path)
 
 
 if __name__ == "__main__":

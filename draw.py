@@ -28,7 +28,7 @@ def draw_state(record_action, record_state, path):
 
 def draw_module(model, data_path, max_num_steps=1000):
 	env = GymEnv()
-	env.setTraces("./mytraces/testTrace")
+	env.setTraces("./mytraces/testTraces")
 	record_reward = []
 	record_state = []
 	record_action = []
