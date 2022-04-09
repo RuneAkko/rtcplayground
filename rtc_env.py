@@ -204,7 +204,7 @@ class GymEnv:
 		"""
 		bandwidth_prediction_bps = log_to_linear(action)
 		if self.lastBwe == INIT_BANDWIDTH:
-			self.lastBwe = log_to_linear(INIT_BANDWIDTH)
+			self.lastBwe = bandwidth_prediction_bps
 		# run the action
 		packet_list, done = self.gym_env.step(bandwidth_prediction_bps)
 		for pkt in packet_list:
