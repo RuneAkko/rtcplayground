@@ -14,7 +14,7 @@ def main():
 	max_num_episodes = 200  # maximal episodes
 	
 	update_interval = 4000  # update policy every update_interval time steps
-	save_interval = 5  # save model every save_interval episode
+	save_interval = 20  # save model every save_interval episode
 	exploration_param = 0.05  # the std var of action distribution
 	K_epochs = 32  # update policy for K_epochs
 	ppo_clip = 0.2  # clip parameter of PPO
@@ -53,7 +53,7 @@ def main():
 				
 				interval_time_step += 1
 				episode_reward += reward
-				print('\r interval_time_step is [%d]',interval_time_step, end="")
+				# print('\r interval_time_step is [%d]',interval_time_step, end="")
 		# update policy || trace is over
 		next_value = ppo.get_value(state)
 		storage.compute_returns(next_value, gamma)
