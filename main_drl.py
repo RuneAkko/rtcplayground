@@ -53,6 +53,7 @@ def main():
 				
 				interval_time_step += 1
 				episode_reward += reward
+				print('\r interval_time_step is [%d]',interval_time_step, end="")
 		# update policy || trace is over
 		next_value = ppo.get_value(state)
 		storage.compute_returns(next_value, gamma)
