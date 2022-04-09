@@ -1,8 +1,9 @@
 .vscode
 __pycache__
 *.jpg
-# *.pth
+*.pth
 !pretrained_model.pth
 data/
 gym/
 mytraces/trainTraces/
+nohup.out

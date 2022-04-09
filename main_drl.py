@@ -14,7 +14,7 @@ def main():
 	max_num_episodes = 200  # maximal episodes
 	
 	update_interval = 4000  # update policy every update_interval time steps
-	save_interval = 5  # save model every save_interval episode
+	save_interval = 20  # save model every save_interval episode
 	exploration_param = 0.05  # the std var of action distribution
 	K_epochs = 32  # update policy for K_epochs
 	ppo_clip = 0.2  # clip parameter of PPO
