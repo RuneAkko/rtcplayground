@@ -1,0 +1,56 @@
+5G_13mbps best fit
+{'johnsonsu': {'a': 0.9361068237131688, 'b': 0.7868559852737566, 'loc': 15.256559206363391, 'scale': 1.066824515627108}}
+            sumsquare_error         aic          bic  kl_div
+johnsonsu          0.518528  739.471605 -1922.126265     inf
+foldcauchy         0.522288  780.467543 -1925.642743     inf
+skewcauchy         0.523997  758.128649 -1924.646102     inf
+
+5G_12mbps best fit
+{'johnsonsu': {'a': 0.8938964517607824, 'b': 0.8258611876329465, 'loc': 14.859458877766542, 'scale': 1.25194660675198}}
+            sumsquare_error          aic          bic  kl_div
+johnsonsu          0.090377  1300.856121 -2473.191114     inf
+skewcauchy         0.094531  1112.504187 -2465.121230     inf
+foldcauchy         0.095301   972.106545 -2462.631781     inf
+
+4G_700kbps best fit
+{'johnsonsb': {'a': 0.35859353085422985, 'b': 1.6127117489249883, 'loc': -0.12424218915282867, 'scale': 1.788252791090001}}
+           sumsquare_error         aic         bic  kl_div
+johnsonsb       180.798053  158.548048 -551.133933     inf
+gennorm         180.850783  152.792147 -557.257026     inf
+beta            180.911122  155.596408 -550.800703     inf
+
+WIRED_200kbps best fit
+{'johnsonsu': {'a': -0.6781006071355481, 'b': 0.4922065527453945, 'loc': 0.1752981950352031, 'scale': 0.004638393692426617}}
+            sumsquare_error         aic         bic  kl_div
+johnsonsu        242.584722  148.434299 -194.140907     inf
+nct              303.547500  172.032176 -101.775827     inf
+skewcauchy       465.166086  175.542022   68.067991     inf
+
+4G_500kbps best fit
+{'dweibull': {'c': 1.2695968500454589, 'loc': 0.48128419327510974, 'scale': 0.17055616800830467}}
+          sumsquare_error         aic         bic  kl_div
+dweibull       364.918910  144.751329 -178.978346     inf
+dgamma         364.953009  145.585172 -178.928823     inf
+gennorm        366.900204  139.103060 -176.108542     inf
+
+WIRED_900kbs best fit
+{'gennorm': {'beta': 1.4071037344386816, 'loc': 0.8625633654296262, 'scale': 0.10714862353434565}}
+         sumsquare_error        aic         bic  kl_div
+gennorm       267.135589  21.902857  111.286196     inf
+fisk          267.452405  27.586411  111.421318     inf
+t             267.454227  30.177055  111.422094     inf
+
+WIRED_35mbps best fit
+{'foldcauchy': {'c': 3.371341840777557, 'loc': -1.1171752897372131e-08, 'scale': 9.681458883207767}}
+            sumsquare_error          aic          bic  kl_div
+foldcauchy         0.002665  1155.009954 -3573.418839     inf
+dgamma             0.002679  1260.964426 -3571.697847     inf
+dweibull           0.002826  1257.606998 -3555.253848     inf
+
+4G_3mbps best fit
+{'burr12': {'c': 0.5532421705165128, 'd': 1.501658996388735, 'loc': -4.621567283899002e-30, 'scale': 1.822170634311119}}
+          sumsquare_error         aic          bic  kl_div
+burr12           1.467853  739.904419 -1611.079682     inf
+powerlaw         1.535473  658.757361 -1603.021654     inf
+exponpow         1.585894  733.900118 -1593.134950     inf
+

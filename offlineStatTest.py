@@ -7,8 +7,8 @@ from scipy.signal import savgol_filter
 
 from gcc.main_estimator import mainEstimator
 from geminiGCC.main_estimator import mainGeminiEstimator
-from plot.plotTool import drawLine, Line
-from utils.trace_analyse import genTraceCap
+from mytraces.net_trace_handler import genTraceCap
+from utils.plotTool import drawLine, Line
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
 

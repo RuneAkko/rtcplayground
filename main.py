@@ -4,12 +4,12 @@ import torch
 from scipy.signal import savgol_filter
 
 from deep_rl.actor_critic import ActorCritic
+from mytraces.net_trace_handler import genTraceCap
+from mytraces.net_trace_handler import readTrace, preprocess
 from offlineStatTest import writeStatsReports
-from plot.plotTool import Line, drawLine
 from rtc_env import GymEnv
 from rtc_env import log_to_linear
-from utils.trace_analyse import genTraceCap
-from utils.trace_analyse import readTrace, preprocess
+from utils.plotTool import Line, drawLine
 
 
 def scaleTraceCap(tracePath) -> Line:

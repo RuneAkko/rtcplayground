@@ -185,9 +185,12 @@ class GymEnv:
 		
 		:return: state [5]
 		"""
+		self.packet_record = PacketRecord()
 		self.packet_record.reset()
 		self.gym_env = alphartc_gym.Gym()
-		self.gym_env.reset(trace_path=random.choice(self.train_trace_set),
+		trace_path = random.choice(self.train_trace_set)
+		print(trace_path)
+		self.gym_env.reset(trace_path=trace_path,
 		                   report_interval_ms=self.step_time,
 		                   duration_time_ms=0)
 		self.lastBwe = INIT_BANDWIDTH
@@ -200,6 +203,8 @@ class GymEnv:
 		:return:
 		"""
 		bandwidth_prediction_bps = log_to_linear(action)
+		if self.lastBwe == INIT_BANDWIDTH:
+			self.lastBwe = log_to_linear(INIT_BANDWIDTH)
 		# run the action
 		packet_list, done = self.gym_env.step(bandwidth_prediction_bps)
 		for pkt in packet_list:
@@ -235,7 +240,9 @@ class GymEnv:
 		states.append(liner_to_log(delta_prediction))
 		
 		self.lastBwe = bandwidth_prediction_bps
-		# reward function
+		
+		# reward function: gemini
 		reward = states[
 			         0] - 1.5 * states[1] - 1.5 * states[2] - 0.02 * states[4]
+		# 
 		return states, reward, done, {}
