@@ -10,3 +10,4 @@ nohup.out
 fig/
 train.log
 localtest/
+plot/
