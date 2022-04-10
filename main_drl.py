@@ -72,13 +72,20 @@ def main():
 		if episode > 0 and not (episode % save_interval) or episode >= max_num_episodes - 5:
 			ppo.save_model(data_path)
 			plt.plot(range(len(record_episode_reward)), record_episode_reward, label="reward")
-			plt.plot(range(len(record_policy_loss)), record_policy_loss, label="policy_loss")
-			plt.plot(range(len(record_value_loss)), record_value_loss, label="value_loss")
 			plt.xlabel('Episode')
 			plt.ylabel('Averaged episode reward')
 			plt.savefig('%sreward_record_%s.jpg' % (data_path))
 			plt.close()
-		
+			plt.plot(range(len(record_policy_loss)), record_policy_loss, label="policy_loss")
+			plt.xlabel('Episode')
+			plt.ylabel('episode policy loss')
+			plt.savefig('%spolicy_loss_record_%s.jpg' % (data_path))
+			plt.close()
+			plt.plot(range(len(record_value_loss)), record_value_loss, label="value_loss")
+			plt.xlabel('Episode')
+			plt.ylabel('episode value loss')
+			plt.savefig('%svalue_loss%s.jpg' % (data_path))
+			plt.close()
 		episode_reward = 0
 		interval_time_step = 0
 
