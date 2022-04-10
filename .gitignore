@@ -7,3 +7,6 @@ data/
 gym/
 mytraces/trainTraces/
 nohup.out
+fig/
+train.log
+localtest/
