@@ -141,11 +141,11 @@ def estimatorTest(tracePath, estimatorTag):
 	writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"mytraces/*.json", recursive=False)
-model = "./model/ppo_2021_05_13_01_55_53.pth"
+traceFiles = glob.glob(f"mytraces/testTraces/*.json", recursive=False)
+model = "./model/ppo_2022_04_10_04_53_52.pth"
 # for ele in traceFiles:
 # 	estimatorTest(ele, 0)
 # for ele in traceFiles:
 # 	estimatorTest(ele, 1)
 for ele in traceFiles:
-	drlEstimatorTest(ele,model)
+	drlEstimatorTest(ele, model)

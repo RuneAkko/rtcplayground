@@ -170,6 +170,6 @@ def genNewTraceTest():
 
 
 if __name__ == "__main__":
-	# genNewTraceTest()
-	# genNewTraceTrain()
-	readTraceCap("/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/*.json")
+	genNewTraceTest()
+# genNewTraceTrain()
+# readTraceCap("/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/*.json")
