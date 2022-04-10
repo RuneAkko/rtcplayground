@@ -190,7 +190,6 @@ class GymEnv:
 		self.gym_env = alphartc_gym.Gym()
 		trace_path = random.choice(self.train_trace_set)
 		print(trace_path)
-		trace_path = "./mytraces/trace_example.json"
 		self.gym_env.reset(trace_path=trace_path,
 		                   report_interval_ms=self.step_time,
 		                   duration_time_ms=0)
@@ -228,7 +227,7 @@ class GymEnv:
 		states.append(liner_to_log(receiving_rate))  # 0.0-1.0
 		
 		delay = self.packet_record.calculate_average_delay(interval=self.step_time)
-		states.append(min(delay / 1000, 1))  # second , with base delay
+		states.append(min(delay / 1000, 2) / 2)  # second , with no base delay
 		
 		loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
 		states.append(loss_ratio)  # 0.0-1.0
@@ -245,5 +244,9 @@ class GymEnv:
 		# reward function: gemini
 		reward = states[
 			         0] - 1.5 * states[1] - 1.5 * states[2] - 0.02 * states[4]
+		
+		# reward : my
+		reward = 4 * states[
+			0] - 1 * states[1] - 4 * states[2]
 		# 
 		return states, reward, done, {}

@@ -4,30 +4,22 @@ import torch
 from scipy.signal import savgol_filter
 
 from deep_rl.actor_critic import ActorCritic
-from mytraces.net_trace_handler import genTraceCap
-from mytraces.net_trace_handler import readTrace, preprocess
 from offlineStatTest import writeStatsReports
 from rtc_env import GymEnv
 from rtc_env import log_to_linear
 from utils.plotTool import Line, drawLine
-
-
-def scaleTraceCap(tracePath) -> Line:
-	traceName, ts = readTrace(tracePath)
-	ts = preprocess(ts)
-	traceCap = Line()
-	y = [tmp.capacity for tmp in ts]
-	x = [tmp.time / 60 for tmp in ts]
-	traceCap.x = x
-	traceCap.y = y
-	return traceCap
+from utils.trace import Trace
 
 
 def drlEstimatorTest(tracePath, modelPath):
 	estimationName = "drl"
 	env = GymEnv()
 	env.setAlphaRtcGym(tracePath)
-	traceName, tracePatterns = readTrace(tracePath)
+	
+	trace = Trace(traceFilePath=tracePath)
+	trace.readTraceFile()
+	trace.preFilter()
+	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
 	model = ActorCritic(5, 1, exploration_param=0.05)
 	model.load_state_dict(torch.load(modelPath))
@@ -68,7 +60,7 @@ def drlEstimatorTest(tracePath, modelPath):
 	# delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
 	
-	traceCap = genTraceCap(tracePath)
+	traceCap = trace.genLine("capacity", smooth=True)
 	
 	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
 
@@ -83,7 +75,11 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	env = GymEnv()
 	env.setAlphaRtcGym(tracePath)
-	traceName, tracePatterns = readTrace(tracePath)
+	trace = Trace(traceFilePath=tracePath)
+	trace.readTraceFile()
+	trace.preFilter()
+	
+	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
 	max_step = 100000
 	traceDone = False
@@ -112,8 +108,6 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	dirName = "fig"
 	
-	capCurve = scaleTraceCap(tracePath)
-	
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
@@ -132,7 +126,7 @@ def estimatorTest(tracePath, estimatorTag):
 	delayCurve.y = delayList
 	delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
 	
-	traceCap = genTraceCap(tracePath)
+	traceCap = trace.genLine("capacity", smooth=True)
 	
 	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
@@ -141,11 +135,11 @@ def estimatorTest(tracePath, estimatorTag):
 	writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"mytraces/*.json", recursive=False)
-model = "./model/ppo_2021_05_13_01_55_53.pth"
+traceFiles = glob.glob(f"mytraces/testTraces/*.json", recursive=False)
+models = "./model/ppo_2022_04_10_04_53_52.pth"
 # for ele in traceFiles:
 # 	estimatorTest(ele, 0)
 # for ele in traceFiles:
 # 	estimatorTest(ele, 1)
 for ele in traceFiles:
-	drlEstimatorTest(ele,model)
+	drlEstimatorTest(ele, models)

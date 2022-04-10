@@ -1,5 +1,8 @@
 import glob
+import os.path
+import random
 
+import numpy as np
 from fitter import Fitter
 from matplotlib import pyplot as plt
 from scipy.signal import savgol_filter
@@ -11,29 +14,29 @@ def traceHistFitCap(sample: Trace, figpath):
 	resultTmp = sample.traceName + " " + "best fit\n"
 	
 	x = [x.capacity for x in sample.tracePatterns]
-	x = savgol_filter(x, 11, 4, mode="nearest")
+	# x = savgol_filter(x, 11, 4, mode="nearest")
 	
-	fer = Fitter(list(x), timeout=10)
+	fer = Fitter(list(x), timeout=30)
 	fer.fit(progress=True)
 	
 	m = fer.get_best()
 	resultTmp += str(m) + "\n"
 	(name, _), = m.items()
 	resultTmp += str(fer.summary(Nbest=3, plot=True)) + "\n"
-	plt.savefig(figpath + "Fit " + sample.traceName)
+	plt.savefig(figpath + "FitCap " + sample.traceName)
 	plt.close()
 	return resultTmp
 
 
 def orifit():
-	traceFiles = glob.glob("/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json", recursive=False)
+	traceFiles = glob.glob("/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/*.json",
+	                       recursive=False)
 	figSavePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/traceFig/"
 	
 	result = ""
 	for ele in traceFiles:
 		t = Trace(ele)
 		t.readTraceFile()
-		t.preFilter()
 		res = traceHistFitCap(t, figSavePath)
 		result += res + "\n"
 	
@@ -41,78 +44,56 @@ def orifit():
 		f.write(result)
 
 
-def drawTraceCap(figSavePath="/Users/hansenma/mhspion/rtcplayground/mytraces/traceFig/",
-                 file="/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json"
-                 ):
-	figSavePath = figSavePath
+def dealWithTrace(savePath="/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/",
+                  file="/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json"
+                  ):
+	savePath = savePath
 	traceFiles = glob.glob(file,
 	                       recursive=False)
 	for ele in traceFiles:
 		t = Trace(ele)
 		t.readTraceFile()
-		t.preFilter()
-		traceFig = t.genFig(figSavePath, t.genLine("capacity", smooth=True))
-		t.draw(traceFig)
+		t.draw(t.genFig(savePath, t.genLine("capacity")))
 
 
-def readTraceCap(file):
-	traceFiles = glob.glob(file,
-	                       recursive=False)
-	for ele in traceFiles:
-		t = Trace(ele)
-		t.readTraceFile()
-		t.preFilter()
-		for ele in t.tracePatterns:
-			if ele.capacity * 1000 < 50:
-				print(ele.capacity)
+# t.preFilter()
+# t.filterForTime()
+# t.writeTraceFile(savePath)
 
 
-def oriSmooth():
-	traceFiles = glob.glob("/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json", recursive=False)
-	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_smooth/"
-	for ele in traceFiles:
-		t = Trace(ele)
-		t.readTraceFile()
-		t.preFilter()
-		t.newTracePatterns = t.tracePatterns
-		t.writeTraceFile(newTracePath)
-
-
-def genNewTrace(storePath, num):
-	newTracePath = storePath
-	trace_num = num
-	
+def genNewTrace(storePath, trace_num):
 	traceDict = {
 		
 		"5G_13mbps": {
-			"params": (-3.772561933925422, 15.786516291709393, 15.786516291709393)
+			"params": (1.536302827753233, 14700.000000000144, 1561.688230475725)
 		},
 		"5G_12mbps": {
-			"params": (0.3663911644658445, 14.045197074416883, 1.0383217938517015)
+			"params": (13742.030804318989, 1227.6995870545934)
 		},
 		"4G_700kbps": {
-			"params": (0.6853110588522835, 0.19583240621158454)
+			"params": (1.425999818712874, 648.7758308425668, 230.88861573132255)
 		},
 		"WIRED_200kbps": {
-			"params": (0.8772432983855415, 0.20739160839162063, 0.03491181250348681)
+			"params": (180.47698720367868, 13.020194936661813)
 		},
 		"4G_500kbps": {
-			"params": (0.49803766512735487, 0.17471835822945928)
+			"params": (499.31064150943394, 198.31335141487523)
 		},
 		"WIRED_900kbs": {
-			"params": (1.4851068818865092, 0.8665280703466564, 0.017731250635105254)
+			"params": (864.3000516042639, 53.4175785243462)
 		},
 		"WIRED_35mbps": {
-			"params": (0.35861538997769365, 34.23464481724227, 2.8567367471823966)
+			"params": (33900.0, 13974.62621885157)
 		},
 		"4G_3mbps": {
-			"params": (3.3348407830697964, 0.8356698606071555, 2.536367226903189)
+			"params": (403.85196271362327, 3152.3062735940803)
 		}
 		
 	}
-	time_step = 200  # ms
 	
-	trace_size = 5000  # trace 为 300 second
+	time_step = 240  # ms
+	
+	trace_size = 1500  # trace 为 300 second
 	
 	for k, v in traceDict.items():
 		traceName = k
@@ -122,54 +103,71 @@ def genNewTrace(storePath, num):
 		while num < trace_num:
 			num += 1
 			
-			capData = None
+			capData = None  # kbps
 			trace = Trace()
-			trace.traceName = traceName + "_" + str(num)
+			trace.traceName = traceName + "_generate_No_" + str(num)
+			
 			if traceName == "5G_13mbps":
-				capData = st.skewnorm.rvs(*params, size=trace_size)
+				capData = st.laplace_asymmetric.rvs(*params, size=trace_size)
 			if traceName == "5G_12mbps":
-				capData = st.genlogistic.rvs(*params, trace_size)
+				capData = st.cauchy.rvs(*params, trace_size)
 			if traceName == "4G_700kbps":
-				capData = st.cosine.rvs(*params, trace_size)
+				capData = st.dweibull.rvs(*params, trace_size)
 			if traceName == "WIRED_200kbps":
-				capData = st.dgamma.rvs(*params, trace_size)
+				capData = st.cauchy.rvs(*params, trace_size)
 			if traceName == "4G_500kbps":
 				capData = st.norm.rvs(*params, trace_size)
 			if traceName == "WIRED_900kbs":
-				capData = st.dgamma.rvs(*params, trace_size)
+				capData = st.logistic.rvs(*params, trace_size)
 			if traceName == "WIRED_35mbps":
-				capData = st.tukeylambda.rvs(*params, trace_size)
+				capData = st.laplace.rvs(*params, trace_size)
 			if traceName == "4G_3mbps":
-				capData = st.skewnorm.rvs(*params, trace_size)
+				capData = st.rayleigh.rvs(*params, trace_size)
+			
 			capData = list(capData)
+			random.shuffle(capData)
+			
+			aver = np.mean(capData)
 			data = []
+			
 			for ele in capData:
 				if ele < 0:
 					continue
+				if ele < aver / 3:
+					continue
+				
 				data.append(ele)
-			data = trace.smooth(data)
 			
 			for ele in data:
 				traceP = TracePattern()
 				traceP.duration = time_step
 				traceP.capacity = ele
 				trace.tracePatterns.append(traceP)
-			trace.writeTraceFile(newTracePath)
+			
+			trace.preFilter()
+			trace.filterForTime()
+			trace.writeTraceFile(storePath)
 
 
 def genNewTraceTrain():
 	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/"
+	if not os.path.exists(newTracePath):
+		os.mkdir(newTracePath)
 	trace_num = 100
 	genNewTrace(newTracePath, trace_num)
 
 
 def genNewTraceTest():
 	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/"
+	if not os.path.exists(newTracePath):
+		os.mkdir(newTracePath)
 	trace_num = 1
 	genNewTrace(newTracePath, trace_num)
 
 
 if __name__ == "__main__":
-	# genNewTraceTest()
-	# genNewTraceTrain()
-	readTraceCap("/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/*.json")
+	genNewTraceTrain()
+# f = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/*.json"
+# ff = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces"
+# dealWithTrace(ff, f)
+# genNewTraceTest()

@@ -38,6 +38,8 @@ def main():
 	interval_time_step = 0
 	episode_reward = 0
 	record_episode_reward = []
+	record_policy_loss = []
+	record_value_loss = []
 	
 	for episode in range(max_num_episodes):
 		
@@ -52,7 +54,7 @@ def main():
 				storage.is_terminals.append(done)
 				interval_time_step += 1
 				episode_reward += reward
-				print('\r interval_time_step is [%d]',interval_time_step, end="")
+				print('\r interval_time_step is [%d]', interval_time_step, end="")
 		# update policy || trace is over
 		next_value = ppo.get_value(state)
 		storage.compute_returns(next_value, gamma)
@@ -62,15 +64,19 @@ def main():
 		storage.clear_storage()
 		episode_reward /= interval_time_step
 		record_episode_reward.append(episode_reward)
+		record_policy_loss.append(policy_loss)
+		record_value_loss.append(val_loss)
 		print('Episode {} \t Average policy loss, value loss, reward {}, {}, {}'.format(episode, policy_loss, val_loss,
 		                                                                                episode_reward))
 		
-		if episode > 0 and not (episode % save_interval) or episode >= max_num_episodes - 10:
+		if episode > 0 and not (episode % save_interval) or episode >= max_num_episodes - 5:
 			ppo.save_model(data_path)
-			plt.plot(range(len(record_episode_reward)), record_episode_reward)
+			plt.plot(range(len(record_episode_reward)), record_episode_reward, label="reward")
+			plt.plot(range(len(record_policy_loss)), record_policy_loss, label="policy_loss")
+			plt.plot(range(len(record_value_loss)), record_value_loss, label="value_loss")
 			plt.xlabel('Episode')
 			plt.ylabel('Averaged episode reward')
-			plt.savefig('%sreward_record_my.jpg' % (data_path))
+			plt.savefig('%sreward_record_%s.jpg' % (data_path))
 			plt.close()
 		
 		episode_reward = 0

@@ -7,10 +7,10 @@ from scipy.signal import savgol_filter
 
 from gcc.main_estimator import mainEstimator
 from geminiGCC.main_estimator import mainGeminiEstimator
-from mytraces.net_trace_handler import genTraceCap
 from utils.plotTool import drawLine, Line
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
+from utils.trace import Trace
 
 
 def writeStatsReports(path, data):
@@ -199,6 +199,9 @@ if __name__ == "__main__":
 	recvRateFig.y = [x / 1000000 for x in recvRates]
 	recvRateFig.y = savgol_filter(recvRateFig.y, 20, 1, mode="nearest")
 	
-	traceCap = genTraceCap(tracePath)
+	trace = Trace(traceFilePath=tracePath)
+	trace.readTraceFile()
+	trace.preFilter()
+	traceCap = trace.genLine("capacity", smooth=True)
 	
 	drawLine("localtest", name, gccRateFig, recvRateFig, traceCap)
