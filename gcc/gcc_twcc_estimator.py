@@ -54,12 +54,12 @@ class GCC(object):
 		self.record = copy.deepcopy(record)
 	
 	def getEstimateBandwidth(self) -> int:
-		_ = self.getEstimateBandwidthByLoss()
+		loss_rate = self.getEstimateBandwidthByLoss()
 		delay_rate = self.getEstimateBandwidthByDelay()
-		# self.predictionBandwidth = min(
-		# 	loss_rate, delay_rate
-		# )
-		self.predictionBandwidth = delay_rate
+		self.predictionBandwidth = min(
+			loss_rate, delay_rate
+		)
+		# self.predictionBandwidth = delay_rate
 		logging.info("[in this interval] delay-rate is [%s] mbps",
 		             delay_rate / 1000000)
 		return self.predictionBandwidth
