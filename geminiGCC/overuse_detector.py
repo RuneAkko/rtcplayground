@@ -26,6 +26,8 @@ class Overdetector:
 		self.overuse_counter = 0
 		
 		self.state = kBwNormal
+		
+		self.T = None
 	
 	# 更新过载的阈值
 	def __overuse_update_threshold(self, modified_offset, cur_ts):
@@ -55,6 +57,7 @@ class Overdetector:
 		T = min(num_of_deltas, kMinNumDeltas) * offset
 		logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
 		             T, offset, min(num_of_deltas, kMinNumDeltas))
+		self.T = T
 		# print("T offset",T,offset,self.threshold)
 		
 		if T > self.threshold:  # 计算累计的overusing值
