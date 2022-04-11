@@ -120,7 +120,7 @@ def estimatorTest(tracePath, estimatorTag):
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
 	recvRate.y = [x / 1000 for x in recvList]  # kbps
-	# recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
+	recvRate.y = savgol_filter(recvRate.y, 21, 4, mode="nearest")
 	
 	delayCurve = Line()
 	delayCurve.name = traceName + "-delay-" + estimationName
@@ -130,7 +130,7 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	traceCap = trace.genLine("capacity", smooth=False)
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, traceCap)
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate,recvRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
 	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
