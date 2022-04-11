@@ -10,13 +10,14 @@ from .rate_controller import RateController
 from .rtt_calculator import rttCalculator
 from .state_machine import StateMachine
 from .trendline_filter import TrendLineFilter
+from .kalman_filter import kalman
 
 MaxGroupNum = 60  # 每个 interval 纳入考虑的最大范围；pkt group 的个数；
 GroupBurstInterval = 5  # ms, pacer 一次性发送 5 ms 内的包，认为是一个 pkt group;
 
 
 class GCC(object):
-	def __init__(self, predictionBandwidth):
+	def __init__(self, predictionBandwidth, filterType):
 		self.predictionBandwidth = predictionBandwidth  # bps
 		self.predictionDelayBwe = predictionBandwidth  # bps
 		self.predictionLossBwe = predictionBandwidth  # bps
@@ -40,6 +41,8 @@ class GCC(object):
 		# delay module component
 		self.arrivalFilter = ArrivalFilter(GroupBurstInterval)
 		self.tlf = TrendLineFilter()
+		self.klm = kalman()
+		self.filterType = filterType
 		
 		self.overUseDetector = OveruseDetector()
 		self.stateMachine = StateMachine()
@@ -68,6 +71,7 @@ class GCC(object):
 		             delay_rate / 1000000)
 		self.predictionLossBwe = loss_rate
 		self.predictionDelayBwe = delay_rate
+		self.rateLossController.bwe = self.predictionBandwidth
 		return self.predictionBandwidth
 	
 	def getEstimateBandwidthByLoss(self) -> int:
@@ -94,9 +98,9 @@ class GCC(object):
 		
 		queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
 		
-		# # gradient 没变化，带宽估计不变
-		# if queueDelayDelta == 0:
-		# 	return self.predictionDelayBwe
+		# gradient 没变化，带宽估计不变
+		if queueDelayDelta == 0:
+			return self.predictionDelayBwe
 		
 		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
 		estimateQueueDelayDuration = queueDelayDelta * \
