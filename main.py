@@ -135,11 +135,11 @@ def estimatorTest(tracePath, estimatorTag):
 	writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"mytraces/testTraces/*.json", recursive=False)
+traceFiles = glob.glob(f"/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
-# for ele in traceFiles:
-# 	estimatorTest(ele, 0)
+for ele in traceFiles:
+	estimatorTest(ele, 0)
 # for ele in traceFiles:
 # 	estimatorTest(ele, 1)
-for ele in traceFiles:
-	drlEstimatorTest(ele, models)
+# for ele in traceFiles:
+# 	drlEstimatorTest(ele, models)

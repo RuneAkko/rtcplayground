@@ -22,7 +22,7 @@ class pktRecord:
 		self.pkts = []
 		self.last_seqNo = {}
 		self.firstPktDelay = None  # ms
-		self.min_seen_delay = self.base_delay_ms  # ms
+		self.min_seen_delay = 10 * 1000  # ms
 		self.last_interval_recv_time = None
 	
 	def clear(self):
@@ -50,12 +50,15 @@ class pktRecord:
 		# Calculate packet delay
 		# delay(i) = t(i) - t(0) + baseDelay
 		# 认为第一个包的时延就是传播时延
-		if self.firstPktDelay is None:
-			self.firstPktDelay = (packet_info.receive_timestamp_ms - packet_info.send_timestamp_ms)
-			delay = self.base_delay_ms
-		else:
-			delay = (packet_info.receive_timestamp_ms - packet_info.send_timestamp_ms) \
-			        - self.firstPktDelay + self.base_delay_ms
+		
+		# if self.firstPktDelay is None:
+		# 	self.firstPktDelay = (packet_info.receive_timestamp_ms - packet_info.send_timestamp_ms)
+		# 	delay = self.base_delay_ms
+		# else:
+		# 	delay = (packet_info.receive_timestamp_ms - packet_info.send_timestamp_ms) \
+		# 	        - self.firstPktDelay + self.base_delay_ms
+		
+		delay = (packet_info.receive_timestamp_ms - packet_info.send_timestamp_ms) + self.base_delay_ms
 		
 		# update minimum delay
 		self.min_seen_delay = min(delay, self.min_seen_delay)
