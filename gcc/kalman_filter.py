@@ -35,11 +35,8 @@ class kalman:
 		
 		self.estimate += self.gain * z  # ms
 		self.estimateError = (1 - self.gain) * self.measurementUncertainty
-		return self.estimate
 	
 	def run(self, delayDeltas):
-		result = 0
-		num = len(delayDeltas)
 		for ele in delayDeltas:
-			result += self.updateEstimate(ele)
-		return result / num
+			self.updateEstimate(ele)
+		return self.estimate
