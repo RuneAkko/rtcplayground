@@ -96,6 +96,10 @@ def estimatorTest(tracePath, estimatorTag):
 	targetRate = [rate]
 	netDataList = []
 	
+	# ==================== dig gcc internal args
+	queueDelayDelta = []
+	gamma = []
+	
 	while not traceDone and step < max_step:
 		if estimatorTag == 0:
 			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV1(rate)
@@ -107,6 +111,10 @@ def estimatorTest(tracePath, estimatorTag):
 		delayList.append(delay)
 		targetRate.append(rate)
 		netDataList.append(netData)
+		
+		if estimatorTag == 0:
+			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
+			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
 	
 	dirName = "fig"
 	
@@ -133,15 +141,38 @@ def estimatorTest(tracePath, estimatorTag):
 	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
-	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	# writeStatsReports(netDataSavePath, netDataList)
+	if estimatorTag != 0:
+		return
+	
+	gammaNegative = [x * -1 for x in gamma]
+	gammaLine, gammaNegativeLine, queueDelayDeltaLine = Line(), Line(), Line()
+	gammaLine.name = traceName + "-gamma" + "-" + estimationName
+	gammaLine.x = stepList
+	gammaLine.y = gamma
+	
+	gammaNegativeLine.name = traceName + "-gamma" + "-" + estimationName
+	gammaNegativeLine.x = stepList
+	gammaNegativeLine.y = gammaNegative
+	
+	queueDelayDeltaLine.name = traceName + "-delay" + "-" + estimationName
+	queueDelayDeltaLine.x = stepList
+	queueDelayDeltaLine.y = queueDelayDelta
+	
+	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
+
+
+# ==================== dig gcc internal args
+
+
+# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+# writeStatsReports(netDataSavePath, netDataList)
 
 
 traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
 	estimatorTest(ele, 0)
-for ele in traceFiles:
-	estimatorTest(ele, 1)
+# for ele in traceFiles:
+# 	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # 	drlEstimatorTest(ele, models)

@@ -50,6 +50,9 @@ class GCC(object):
 		self.rttCalculator = rttCalculator()
 		
 		self.inflightGroups = []
+		
+		#
+		self.queueDelayDelta = None
 	
 	def setIntervalState(self, record: pktRecord):
 		self.record = copy.deepcopy(record)
@@ -100,7 +103,7 @@ class GCC(object):
 		                             min(self.tlf.numCount, self.minGroupNum)
 		logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
 		             estimateQueueDelayDuration, queueDelayDelta, min(self.tlf.numCount, self.minGroupNum))
-		
+		self.queueDelayDelta = estimateQueueDelayDuration
 		# # # 从本 interval 第一个包发出，到最后一个包发出的时间
 		# currentIntervalDuration = self.arrivalFilter.pktGroups[0]
 		
