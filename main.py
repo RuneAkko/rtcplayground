@@ -164,8 +164,8 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	# writeStatsReports(netDataSavePath, netDataList)
-	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	writeStatsReports(netDataSavePath, netDataList)
+	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+	# writeStatsReports(netDataSavePath, netDataList)
 	
 	
 	gammaNegative = [x * -1 for x in gamma]
