@@ -11,10 +11,10 @@ from rtc_env import GymEnv
 def main():
 	############## Hyperparameters for the experiments ##############
 	env_name = "AlphaRTC"
-	max_num_episodes = 200  # maximal episodes
+	max_num_episodes = 2000  # maximal episodes
 	
 	update_interval = 4000  # update policy every update_interval time steps
-	save_interval = 20  # save model every save_interval episode
+	save_interval = 200  # save model every save_interval episode
 	exploration_param = 0.05  # the std var of action distribution
 	K_epochs = 32  # update policy for K_epochs
 	ppo_clip = 0.2  # clip parameter of PPO
@@ -52,10 +52,9 @@ def main():
 				state = torch.Tensor(state)
 				storage.rewards.append(reward)
 				storage.is_terminals.append(done)
-				
 				interval_time_step += 1
 				episode_reward += reward
-				print('\r interval_time_step is [%d]', interval_time_step, end="")
+				# print('\r interval_time_step is [%d]', interval_time_step, end="")
 		# update policy || trace is over
 		next_value = ppo.get_value(state)
 		storage.compute_returns(next_value, gamma)
@@ -75,17 +74,17 @@ def main():
 			plt.plot(range(len(record_episode_reward)), record_episode_reward, label="reward")
 			plt.xlabel('Episode')
 			plt.ylabel('Averaged episode reward')
-			plt.savefig('%sreward_record_%s.jpg' % (data_path))
+			plt.savefig('%sreward_record.jpg' % (data_path))
 			plt.close()
 			plt.plot(range(len(record_policy_loss)), record_policy_loss, label="policy_loss")
 			plt.xlabel('Episode')
 			plt.ylabel('episode policy loss')
-			plt.savefig('%spolicy_loss_record_%s.jpg' % (data_path))
+			plt.savefig('%spolicy_loss_record.jpg' % (data_path))
 			plt.close()
 			plt.plot(range(len(record_value_loss)), record_value_loss, label="value_loss")
 			plt.xlabel('Episode')
 			plt.ylabel('episode value loss')
-			plt.savefig('%svalue_loss%s.jpg' % (data_path))
+			plt.savefig('%svalue_loss.jpg' % (data_path))
 			plt.close()
 		episode_reward = 0
 		interval_time_step = 0

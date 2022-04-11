@@ -18,8 +18,8 @@ def drlEstimatorTest(tracePath, modelPath):
 	
 	trace = Trace(traceFilePath=tracePath)
 	trace.readTraceFile()
-	trace.preFilter()
-	trace.filterForTime()
+	# trace.preFilter()
+	# trace.filterForTime()
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
 	model = ActorCritic(5, 1, exploration_param=0.05)
@@ -29,6 +29,8 @@ def drlEstimatorTest(tracePath, modelPath):
 	step = 0
 	stepList = []
 	recvList = []
+	delayList=[]
+	lossList = []
 	targetRate = []
 	done = False
 	state = torch.Tensor([0.0 for _ in range(5)])
@@ -37,6 +39,8 @@ def drlEstimatorTest(tracePath, modelPath):
 		state, reward, done, _ = env.step(action)
 		targetRate.append(log_to_linear(action))
 		recvList.append(log_to_linear(state[0]))
+		delayList.append(state[1]*2*1000)
+		lossList.append(state[2])
 		state = torch.Tensor(state)
 		stepList.append(step)
 		step += 1
@@ -55,15 +59,21 @@ def drlEstimatorTest(tracePath, modelPath):
 	recvRate.y = [x / 1000 for x in recvList]  # kbps
 	# recvRate.y = savgol_filter(recvRate.y, 21, 1, mode="nearest")
 	
-	# delayCurve = Line()
-	# delayCurve.name = traceName + "-delay-" + estimationName
-	# delayCurve.x = stepList
-	# delayCurve.y = delayList
+	delayCurve = Line()
+	delayCurve.name = traceName + "-delay-" + estimationName
+	delayCurve.x = stepList
+	delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
+
+	lossCurve = Line()
+	lossCurve.name = traceName + "-loss-" + estimationName
+	lossCurve.x = stepList
+	lossCurve.y = lossList
 	
 	traceCap = trace.genLine("capacity", smooth=False)
-	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, traceCap)
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
+	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
+	drawLine(dirName, traceName + "-loss-" + estimationName, lossCurve)
 
 
 def estimatorTest(tracePath, estimatorTag):
@@ -173,4 +183,6 @@ for ele in traceFiles:
 for ele in traceFiles:
 	estimatorTest(ele, 1)
 # for ele in traceFiles:
-# 	drlEstimatorTest(ele, models)
+# 	estimatorTest(ele, 1)
+for ele in traceFiles:
+	drlEstimatorTest(ele, models)

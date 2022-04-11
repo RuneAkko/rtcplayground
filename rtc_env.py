@@ -204,7 +204,7 @@ class GymEnv:
 		"""
 		bandwidth_prediction_bps = log_to_linear(action)
 		if self.lastBwe == INIT_BANDWIDTH:
-			self.lastBwe = log_to_linear(INIT_BANDWIDTH)
+			self.lastBwe = bandwidth_prediction_bps
 		# run the action
 		packet_list, done = self.gym_env.step(bandwidth_prediction_bps)
 		for pkt in packet_list:
@@ -242,11 +242,15 @@ class GymEnv:
 		self.lastBwe = bandwidth_prediction_bps
 		
 		# reward function: gemini
+		# rate - delay -loss -
 		reward = states[
-			         0] - 1.5 * states[1] - 1.5 * states[2] - 0.02 * states[4]
+			         0] - 2.5 * states[1] - 5 * states[2] - 0.01 * states[4]
 		
-		# reward : my
-		reward = 4 * states[
-			0] - 1 * states[1] - 4 * states[2]
+		# # reward : my
+		# reward = 4 * states[
+		# 	0] - 1 * states[1] - 4 * states[2]
 		# 
+		
+		# reward microsoft:
+		# reward = 0.6*np.log(4*receiving_rate/1000000+1) - delay*2/1000- 10 *loss_ratio
 		return states, reward, done, {}
