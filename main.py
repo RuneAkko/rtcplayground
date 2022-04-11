@@ -97,8 +97,8 @@ def estimatorTest(tracePath, estimatorTag):
 	netDataList = []
 	
 	# ==================== dig gcc internal args
-	queueDelayDelta = []
-	gamma = []
+	queueDelayDelta = [0]
+	gamma = [0]
 	
 	while not traceDone and step < max_step:
 		if estimatorTag == 0:
@@ -128,7 +128,7 @@ def estimatorTest(tracePath, estimatorTag):
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
 	recvRate.y = [x / 1000 for x in recvList]  # kbps
-	recvRate.y = savgol_filter(recvRate.y, 21, 4, mode="nearest")
+	# recvRate.y = savgol_filter(recvRate.y, 21, 4, mode="nearest")
 	
 	delayCurve = Line()
 	delayCurve.name = traceName + "-delay-" + estimationName
@@ -170,7 +170,7 @@ traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
 	estimatorTest(ele, 0)
-# for ele in traceFiles:
-# 	estimatorTest(ele, 1)
+for ele in traceFiles:
+	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # 	drlEstimatorTest(ele, models)

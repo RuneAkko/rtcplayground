@@ -7,7 +7,7 @@ class AdaptiveThreshold:
 	values taken from draft-ietf-rmcat-gcc-02
 	"""
 	
-	def __init__(self, gamma=12.5, up=0.01, down=0.00018, min=6, max=600):
+	def __init__(self, gamma=12.5, up=0.0187, down=0.039, min=6, max=600):
 		self.thresholdGamma = gamma  # ms
 		self.KUp = up
 		self.KDown = down
