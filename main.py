@@ -19,6 +19,7 @@ def drlEstimatorTest(tracePath, modelPath):
 	trace = Trace(traceFilePath=tracePath)
 	trace.readTraceFile()
 	trace.preFilter()
+	trace.filterForTime()
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
 	model = ActorCritic(5, 1, exploration_param=0.05)
@@ -45,14 +46,14 @@ def drlEstimatorTest(tracePath, modelPath):
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
-	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	gccRate.y = savgol_filter(gccRate.y, 21, 1, mode="nearest")
+	gccRate.y = [x / 1000 for x in targetRate]  # kbps
+	# gccRate.y = savgol_filter(gccRate.y, 21, 1, mode="nearest")
 	
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
-	recvRate.y = [x / 1000000 for x in recvList]  # mbps
-	recvRate.y = savgol_filter(recvRate.y, 21, 1, mode="nearest")
+	recvRate.y = [x / 1000 for x in recvList]  # kbps
+	# recvRate.y = savgol_filter(recvRate.y, 21, 1, mode="nearest")
 	
 	# delayCurve = Line()
 	# delayCurve.name = traceName + "-delay-" + estimationName
@@ -60,9 +61,9 @@ def drlEstimatorTest(tracePath, modelPath):
 	# delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
 	
-	traceCap = trace.genLine("capacity", smooth=True)
+	traceCap = trace.genLine("capacity", smooth=False)
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, traceCap)
 
 
 def estimatorTest(tracePath, estimatorTag):
@@ -78,6 +79,7 @@ def estimatorTest(tracePath, estimatorTag):
 	trace = Trace(traceFilePath=tracePath)
 	trace.readTraceFile()
 	trace.preFilter()
+	trace.filterForTime()
 	
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
@@ -128,18 +130,18 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	traceCap = trace.genLine("capacity", smooth=False)
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
+	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
 	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	# writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
+traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
+	estimatorTest(ele, 0)
+for ele in traceFiles:
 	estimatorTest(ele, 1)
-# for ele in traceFiles:
-# 	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # 	drlEstimatorTest(ele, models)
