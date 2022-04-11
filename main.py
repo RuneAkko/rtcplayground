@@ -100,6 +100,7 @@ def estimatorTest(tracePath, estimatorTag):
 	recvList = [0]
 	stepList = [step]
 	delayList = [0]
+	lossList = [0]
 	
 	rate = env.lastBwe
 	
@@ -121,6 +122,7 @@ def estimatorTest(tracePath, estimatorTag):
 		delayList.append(delay)
 		targetRate.append(rate)
 		netDataList.append(netData)
+		lossList.append(qos3)
 		
 		if estimatorTag == 0:
 			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
@@ -148,11 +150,17 @@ def estimatorTest(tracePath, estimatorTag):
 	delayCurve.x = stepList
 	delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
+
+	lossCurve = Line()
+	lossCurve.name = traceName + "-delay-" + estimationName
+	lossCurve.x = stepList
+	lossCurve.y = lossList
 	
 	traceCap = trace.genLine("capacity", smooth=False)
 	
 	drawLine(dirName, traceName + "-rate-" + estimationName, traceCap, recvRate, gccRate)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
+	drawLine(dirName, traceName + "-loss-" + estimationName, lossCurve)
 	
 	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	# writeStatsReports(netDataSavePath, netDataList)
@@ -177,7 +185,7 @@ def estimatorTest(tracePath, estimatorTag):
 	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 
 
-traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
+traceFiles = glob.glob(f"./mytraces/specialTrace/special02.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
 	estimatorTest(ele, 0)

@@ -66,8 +66,7 @@ class GCC(object):
 		# self.predictionBandwidth = delay_rate
 		logging.info("[in this interval] delay-rate is [%s] mbps",
 		             delay_rate / 1000000)
-		self.predictionLossBwe = loss_rate
-		self.predictionDelayBwe = delay_rate
+		self.rateLossController.bwe = self.predictionBandwidth
 		return self.predictionBandwidth
 	
 	def getEstimateBandwidthByLoss(self) -> int:
