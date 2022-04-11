@@ -41,17 +41,17 @@ class PacketRecord:
 		self.last_seqNo[packet_info.ssrc] = packet_info.sequence_number
 		
 		# Calculate packet delay
-		# if self.timer_delta is None:
+		if self.timer_delta is None:
 			
-		# 	# shift delay of the first packet to base delay
-		# 	self.timer_delta = self.base_delay_ms - \
-		# 	                   (packet_info.receive_timestamp - packet_info.send_timestamp)
-		# 	# self.timer_delta=max(self.base_delay_ms,self.timer_delta)
-		# 	if self.train == 1:
-		# 		self.timer_delta = self.base_delay_ms
-		# delay = self.timer_delta + \
-		#         (packet_info.receive_timestamp - packet_info.send_timestamp)
-		delay = (packet_info.receive_timestamp - packet_info.send_timestamp) + self.base_delay_ms
+			# shift delay of the first packet to base delay
+			self.timer_delta = self.base_delay_ms - \
+			                   (packet_info.receive_timestamp - packet_info.send_timestamp)
+			# self.timer_delta=max(self.base_delay_ms,self.timer_delta)
+			if self.train == 1:
+				self.timer_delta = self.base_delay_ms
+		delay = self.timer_delta + \
+		        (packet_info.receive_timestamp - packet_info.send_timestamp)
+		# delay = (packet_info.receive_timestamp - packet_info.send_timestamp) + self.base_delay_ms
 		self.min_seen_delay = min(delay, self.min_seen_delay)
 		# if delay<0:
 		#     print("timestamp",packet_info.receive_timestamp,packet_info.send_timestamp,self.timer_delta)
