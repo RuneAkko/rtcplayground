@@ -111,31 +111,31 @@ def estimatorTest(tracePath, estimatorTag):
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
-	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
+	gccRate.y = [x / 1000 for x in targetRate]  # kbps
+	# gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
 	
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
-	recvRate.y = [x / 1000000 for x in recvList]  # mbps
-	recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
+	recvRate.y = [x / 1000 for x in recvList]  # kbps
+	# recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
 	
 	delayCurve = Line()
 	delayCurve.name = traceName + "-delay-" + estimationName
 	delayCurve.x = stepList
 	delayCurve.y = delayList
-	delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
+	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
 	
-	traceCap = trace.genLine("capacity", smooth=True)
+	traceCap = trace.genLine("capacity", smooth=False)
 	
 	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
-	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	writeStatsReports(netDataSavePath, netDataList)
+	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+	# writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/*.json", recursive=False)
+traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
 	estimatorTest(ele, 0)
