@@ -19,6 +19,7 @@ class GCC(object):
 	def __init__(self, predictionBandwidth):
 		self.predictionBandwidth = predictionBandwidth  # bps
 		self.predictionDelayBwe = predictionBandwidth  # bps
+		self.predictionLossBwe = predictionBandwidth  # bps
 		self.minGroupNum = MaxGroupNum
 		
 		self.record = None
@@ -62,6 +63,8 @@ class GCC(object):
 		# self.predictionBandwidth = delay_rate
 		logging.info("[in this interval] delay-rate is [%s] mbps",
 		             delay_rate / 1000000)
+		self.predictionLossBwe = loss_rate
+		self.predictionDelayBwe = delay_rate
 		return self.predictionBandwidth
 	
 	def getEstimateBandwidthByLoss(self) -> int:
