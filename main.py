@@ -29,7 +29,7 @@ def drlEstimatorTest(tracePath, modelPath):
 	step = 0
 	stepList = []
 	recvList = []
-	delayList=[]
+	delayList = []
 	lossList = []
 	targetRate = []
 	done = False
@@ -39,7 +39,7 @@ def drlEstimatorTest(tracePath, modelPath):
 		state, reward, done, _ = env.step(action)
 		targetRate.append(log_to_linear(action))
 		recvList.append(log_to_linear(state[0]))
-		delayList.append(state[1]*2*1000)
+		delayList.append(state[1] * 2 * 1000)
 		lossList.append(state[2])
 		state = torch.Tensor(state)
 		stepList.append(step)
@@ -64,7 +64,7 @@ def drlEstimatorTest(tracePath, modelPath):
 	delayCurve.x = stepList
 	delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
-
+	
 	lossCurve = Line()
 	lossCurve.name = traceName + "-loss-" + estimationName
 	lossCurve.x = stepList
@@ -125,6 +125,9 @@ def estimatorTest(tracePath, estimatorTag):
 		if estimatorTag == 0:
 			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
 			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
+		if estimatorTag == 1:
+			gamma.append(env.geminiEstimator.gcc_rate_controller.trendline_estimator.trendline * 4)
+			queueDelayDelta.append(env.geminiEstimator.gcc_rate_controller.detector.T)
 	
 	dirName = "fig"
 	
