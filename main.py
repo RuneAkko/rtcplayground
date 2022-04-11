@@ -138,7 +138,7 @@ def estimatorTest(tracePath, estimatorTag):
 traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
-	estimatorTest(ele, 0)
+	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # 	estimatorTest(ele, 1)
 # for ele in traceFiles:
