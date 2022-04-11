@@ -159,8 +159,6 @@ def estimatorTest(tracePath, estimatorTag):
 	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	writeStatsReports(netDataSavePath, netDataList)
 	
-	if estimatorTag != 0:
-		return
 	
 	gammaNegative = [x * -1 for x in gamma]
 	gammaLine, gammaNegativeLine, queueDelayDeltaLine = Line(), Line(), Line()
@@ -186,6 +184,6 @@ for ele in traceFiles:
 for ele in traceFiles:
 	estimatorTest(ele, 1)
 # for ele in traceFiles:
-# 	estimatorTest(ele, 1)
-for ele in traceFiles:
-	drlEstimatorTest(ele, models)
+# # 	estimatorTest(ele, 1)
+# for ele in traceFiles:
+# 	drlEstimatorTest(ele, models)
