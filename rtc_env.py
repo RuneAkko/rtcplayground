@@ -25,7 +25,7 @@ MIN_BANDWIDTH_MBPS = 0.01
 LOG_MAX_BANDWIDTH_MBPS = np.log(MAX_BANDWIDTH_MBPS)
 LOG_MIN_BANDWIDTH_MBPS = np.log(MIN_BANDWIDTH_MBPS)
 
-INIT_BANDWIDTH = 3000 * 1000  # 3m bps
+INIT_BANDWIDTH = 300 * 1000  # 3 kbps
 
 
 def liner_to_log(value):
@@ -111,8 +111,8 @@ class GymEnv:
 		
 		if len(packet_list) > 0:
 			# nowTs = self.ruleEstimator.gcc.currentTimestamp
-			# # 调用带宽估计间隔
-			# if (nowTs - self.lastEstimatorTs) >= 200:
+			# 调用带宽估计间隔
+			# if (nowTs - self.lastEstimatorTs) >= 1000:
 			# 	self.lastEstimatorTs = nowTs
 			next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
 		if next_targetRate != 0:

@@ -19,6 +19,7 @@ class GCC(object):
 	def __init__(self, predictionBandwidth):
 		self.predictionBandwidth = predictionBandwidth  # bps
 		self.predictionDelayBwe = predictionBandwidth  # bps
+		self.predictionLossBwe = predictionBandwidth  # bps
 		self.minGroupNum = MaxGroupNum
 		
 		self.record = None
@@ -49,19 +50,24 @@ class GCC(object):
 		self.rttCalculator = rttCalculator()
 		
 		self.inflightGroups = []
+		
+		#
+		self.queueDelayDelta = None
 	
 	def setIntervalState(self, record: pktRecord):
 		self.record = copy.deepcopy(record)
 	
 	def getEstimateBandwidth(self) -> int:
-		_ = self.getEstimateBandwidthByLoss()
+		loss_rate = self.getEstimateBandwidthByLoss()
 		delay_rate = self.getEstimateBandwidthByDelay()
-		# self.predictionBandwidth = min(
-		# 	loss_rate, delay_rate
-		# )
-		self.predictionBandwidth = delay_rate
+		self.predictionBandwidth = min(
+			loss_rate, delay_rate
+		)
+		# self.predictionBandwidth = delay_rate
 		logging.info("[in this interval] delay-rate is [%s] mbps",
 		             delay_rate / 1000000)
+		self.predictionLossBwe = loss_rate
+		self.predictionDelayBwe = delay_rate
 		return self.predictionBandwidth
 	
 	def getEstimateBandwidthByLoss(self) -> int:
@@ -97,7 +103,7 @@ class GCC(object):
 		                             min(self.tlf.numCount, self.minGroupNum)
 		logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
 		             estimateQueueDelayDuration, queueDelayDelta, min(self.tlf.numCount, self.minGroupNum))
-		
+		self.queueDelayDelta = estimateQueueDelayDuration
 		# # # 从本 interval 第一个包发出，到最后一个包发出的时间
 		# currentIntervalDuration = self.arrivalFilter.pktGroups[0]
 		

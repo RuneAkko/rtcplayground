@@ -18,7 +18,8 @@ def drlEstimatorTest(tracePath, modelPath):
 	
 	trace = Trace(traceFilePath=tracePath)
 	trace.readTraceFile()
-	trace.preFilter()
+	# trace.preFilter()
+	# trace.filterForTime()
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
 	model = ActorCritic(5, 1, exploration_param=0.05)
@@ -70,7 +71,6 @@ def drlEstimatorTest(tracePath, modelPath):
 	lossCurve.y = lossList
 	
 	traceCap = trace.genLine("capacity", smooth=False)
-	
 	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	drawLine(dirName, traceName + "-loss-" + estimationName, lossCurve)
@@ -89,6 +89,7 @@ def estimatorTest(tracePath, estimatorTag):
 	trace = Trace(traceFilePath=tracePath)
 	trace.readTraceFile()
 	trace.preFilter()
+	trace.filterForTime()
 	
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
@@ -105,6 +106,10 @@ def estimatorTest(tracePath, estimatorTag):
 	targetRate = [rate]
 	netDataList = []
 	
+	# ==================== dig gcc internal args
+	queueDelayDelta = []
+	gamma = []
+	
 	while not traceDone and step < max_step:
 		if estimatorTag == 0:
 			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV1(rate)
@@ -116,38 +121,63 @@ def estimatorTest(tracePath, estimatorTag):
 		delayList.append(delay)
 		targetRate.append(rate)
 		netDataList.append(netData)
+		
+		if estimatorTag == 0:
+			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
+			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
 	
 	dirName = "fig"
 	
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
-	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
+	gccRate.y = [x / 1000 for x in targetRate]  # kbps
+	# gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
 	
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
-	recvRate.y = [x / 1000000 for x in recvList]  # mbps
-	recvRate.y = savgol_filter(recvRate.y, 20, 1, mode="nearest")
+	recvRate.y = [x / 1000 for x in recvList]  # kbps
+	recvRate.y = savgol_filter(recvRate.y, 21, 4, mode="nearest")
 	
 	delayCurve = Line()
 	delayCurve.name = traceName + "-delay-" + estimationName
 	delayCurve.x = stepList
 	delayCurve.y = delayList
-	delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
+	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
 	
-	traceCap = trace.genLine("capacity", smooth=True)
+	traceCap = trace.genLine("capacity", smooth=False)
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
+	drawLine(dirName, traceName + "-rate-" + estimationName, traceCap, recvRate, gccRate)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
+	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+	# writeStatsReports(netDataSavePath, netDataList)
 	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	writeStatsReports(netDataSavePath, netDataList)
+	
+	if estimatorTag != 0:
+		return
+	
+	gammaNegative = [x * -1 for x in gamma]
+	gammaLine, gammaNegativeLine, queueDelayDeltaLine = Line(), Line(), Line()
+	gammaLine.name = traceName + "-gamma" + "-" + estimationName
+	gammaLine.x = stepList
+	gammaLine.y = gamma
+	
+	gammaNegativeLine.name = traceName + "-gamma" + "-" + estimationName
+	gammaNegativeLine.x = stepList
+	gammaNegativeLine.y = gammaNegative
+	
+	queueDelayDeltaLine.name = traceName + "-delay" + "-" + estimationName
+	queueDelayDeltaLine.x = stepList
+	queueDelayDeltaLine.y = queueDelayDelta
+	
+	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 
 
 traceFiles = glob.glob(f"mytraces/ori_traces_preprocess/*.json", recursive=False)
-models = "./model/ppo_2022_04_11_09_46_47.pth"
+models = "./model/ppo_2022_04_11_21_43_58.pth"
 # models = "/home/mahansen/rtcplayground/model/ppo_2021_05_13_01_55_53.pth"
 # for ele in traceFiles:
 # 	estimatorTest(ele, 0)
