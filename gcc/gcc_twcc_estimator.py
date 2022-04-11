@@ -17,7 +17,7 @@ GroupBurstInterval = 5  # ms, pacer 一次性发送 5 ms 内的包，认为是�
 
 
 class GCC(object):
-	def __init__(self, predictionBandwidth, filterType):
+	def __init__(self, predictionBandwidth, filterType="kal"):
 		self.predictionBandwidth = predictionBandwidth  # bps
 		self.predictionDelayBwe = predictionBandwidth  # bps
 		self.predictionLossBwe = predictionBandwidth  # bps
@@ -94,18 +94,25 @@ class GCC(object):
 		delayDelta, arrivalTs = self.arrivalFilter.measured_groupDelay_deltas()
 		logging.info("[in this interval] delayDelta from group is [%s]", delayDelta)
 		
-		queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
+		if self.filterType == "tlf":
+			queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
+		else:
+			queueDelayDelta = self.klm.run(delayDelta)
 		
 		# gradient 没变化，带宽估计不变
 		if queueDelayDelta == 0:
 			return self.predictionBandwidth
 		
-		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
-		estimateQueueDelayDuration = queueDelayDelta * \
-		                             min(self.tlf.numCount, self.minGroupNum)
-		logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
-		             estimateQueueDelayDuration, queueDelayDelta, min(self.tlf.numCount, self.minGroupNum))
-		self.queueDelayDelta = estimateQueueDelayDuration
+		if self.filterType == "tlf":
+			# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
+			estimateQueueDelayDuration = queueDelayDelta * \
+			                             min(self.tlf.numCount, self.minGroupNum)
+			logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
+			             estimateQueueDelayDuration, queueDelayDelta, min(self.tlf.numCount, self.minGroupNum))
+			self.queueDelayDelta = estimateQueueDelayDuration
+		else:
+			estimateQueueDelayDuration = queueDelayDelta
+			self.queueDelayDelta = estimateQueueDelayDuration
 		# # # 从本 interval 第一个包发出，到最后一个包发出的时间
 		# currentIntervalDuration = self.arrivalFilter.pktGroups[0]
 		
