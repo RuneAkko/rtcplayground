@@ -130,18 +130,18 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	traceCap = trace.genLine("capacity", smooth=False)
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate,recvRate, traceCap)
+	drawLine(dirName, traceName + "-rate-" + estimationName, traceCap,recvRate,gccRate)
 	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
 	
-	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	# writeStatsReports(netDataSavePath, netDataList)
+	netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+	writeStatsReports(netDataSavePath, netDataList)
 
 
 traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
 	estimatorTest(ele, 0)
-for ele in traceFiles:
-	estimatorTest(ele, 1)
+# for ele in traceFiles:
+# 	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # 	drlEstimatorTest(ele, models)
