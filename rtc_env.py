@@ -111,8 +111,8 @@ class GymEnv:
 		
 		if len(packet_list) > 0:
 			# nowTs = self.ruleEstimator.gcc.currentTimestamp
-			# # 调用带宽估计间隔
-			# if (nowTs - self.lastEstimatorTs) >= 200:
+			# 调用带宽估计间隔
+			# if (nowTs - self.lastEstimatorTs) >= 1000:
 			# 	self.lastEstimatorTs = nowTs
 			next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
 		if next_targetRate != 0:

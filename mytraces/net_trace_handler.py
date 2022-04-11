@@ -194,8 +194,32 @@ def genSpecialTraceTest():
 		}
 	}
 	json_str = json.dumps(template, indent=1)
-	with open(newTracePath + "special01.json", "w") as f:
+	with open(newTracePath + "steady_change_trace.json", "w") as f:
 		f.write(json_str)
+	template = {
+		"type": "video",
+		"downlink": {},
+		"uplink": {
+			"trace_pattern": [
+				{
+					"duration": 50 * 1000,
+					"capacity": 1000,
+				},
+				{
+					"duration": 50 * 1000,
+					"capacity": 2.5 * 1000,
+				},
+				{
+					"duration": 50 * 1000,
+					"capacity": 500,
+				},
+				{
+					"duration": 50 * 1000,
+					"capacity": 1000,
+				},
+			]
+		}
+	}
 
 
 if __name__ == "__main__":
