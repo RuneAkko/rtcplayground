@@ -2,7 +2,6 @@ import csv
 import os.path
 
 import matplotlib.pyplot as plt
-from more_itertools import chunked
 
 
 class Line:

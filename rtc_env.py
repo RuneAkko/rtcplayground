@@ -242,11 +242,14 @@ class GymEnv:
 		self.lastBwe = bandwidth_prediction_bps
 		
 		# reward function: gemini
-		reward = states[
-			         0] - 1.5 * states[1] - 1.5 * states[2] - 0.02 * states[4]
+		# reward = states[
+		# 	         0] - 1.5 * states[1] - 1.5 * states[2] - 0.02 * states[4]
 		
-		# reward : my
-		reward = 4 * states[
-			0] - 1 * states[1] - 4 * states[2]
+		# # reward : my
+		# reward = 4 * states[
+		# 	0] - 1 * states[1] - 4 * states[2]
 		# 
+
+		# reward microsoft:
+		reward = 0.6*np.log(4*receiving_rate/1000000+1) - delay*2/1000- 10 *loss_ratio
 		return states, reward, done, {}

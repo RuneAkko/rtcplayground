@@ -28,6 +28,8 @@ def drlEstimatorTest(tracePath, modelPath):
 	step = 0
 	stepList = []
 	recvList = []
+	delayList=[]
+	lossList = []
 	targetRate = []
 	done = False
 	state = torch.Tensor([0.0 for _ in range(5)])
@@ -36,6 +38,8 @@ def drlEstimatorTest(tracePath, modelPath):
 		state, reward, done, _ = env.step(action)
 		targetRate.append(log_to_linear(action))
 		recvList.append(log_to_linear(state[0]))
+		delayList.append(state[1]*2*1000)
+		lossList.append(state[2])
 		state = torch.Tensor(state)
 		stepList.append(step)
 		step += 1
@@ -45,24 +49,31 @@ def drlEstimatorTest(tracePath, modelPath):
 	gccRate = Line()
 	gccRate.name = traceName + "-gccRate" + "-" + estimationName
 	gccRate.x = stepList
-	gccRate.y = [x / 1000000 for x in targetRate]  # mbps
-	gccRate.y = savgol_filter(gccRate.y, 21, 1, mode="nearest")
+	gccRate.y = [x / 1000 for x in targetRate]  # kbps
+	# gccRate.y = savgol_filter(gccRate.y, 21, 1, mode="nearest")
 	
 	recvRate = Line()
 	recvRate.name = traceName + "-recvRate" + "-" + estimationName
 	recvRate.x = stepList
-	recvRate.y = [x / 1000000 for x in recvList]  # mbps
-	recvRate.y = savgol_filter(recvRate.y, 21, 1, mode="nearest")
+	recvRate.y = [x / 1000 for x in recvList]  # kbps
+	# recvRate.y = savgol_filter(recvRate.y, 21, 1, mode="nearest")
 	
-	# delayCurve = Line()
-	# delayCurve.name = traceName + "-delay-" + estimationName
-	# delayCurve.x = stepList
-	# delayCurve.y = delayList
+	delayCurve = Line()
+	delayCurve.name = traceName + "-delay-" + estimationName
+	delayCurve.x = stepList
+	delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
+
+	lossCurve = Line()
+	lossCurve.name = traceName + "-loss-" + estimationName
+	lossCurve.x = stepList
+	lossCurve.y = lossList
 	
-	traceCap = trace.genLine("capacity", smooth=True)
+	traceCap = trace.genLine("capacity", smooth=False)
 	
 	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
+	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
+	drawLine(dirName, traceName + "-loss-" + estimationName, lossCurve)
 
 
 def estimatorTest(tracePath, estimatorTag):
@@ -135,8 +146,9 @@ def estimatorTest(tracePath, estimatorTag):
 	writeStatsReports(netDataSavePath, netDataList)
 
 
-traceFiles = glob.glob(f"mytraces/testTraces/*.json", recursive=False)
-models = "./model/ppo_2022_04_10_04_53_52.pth"
+traceFiles = glob.glob(f"mytraces/ori_traces_preprocess/*.json", recursive=False)
+models = "./model/ppo_2022_04_11_09_46_47.pth"
+# models = "/home/mahansen/rtcplayground/model/ppo_2021_05_13_01_55_53.pth"
 # for ele in traceFiles:
 # 	estimatorTest(ele, 0)
 # for ele in traceFiles:

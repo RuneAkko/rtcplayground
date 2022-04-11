@@ -121,10 +121,10 @@ class Trace(object):
 				newTp.append(tmp)
 		self.tracePatterns = newTp
 	
-	def genLine(self, attr, smooth=False) -> Line:
+	def genLine(self, attr, smooth=False,interval=60) -> Line:
 		x, y = [], []
 		for ts in self.tracePatterns:
-			x.append(ts.time)
+			x.append(ts.time/interval)
 			y.append(getattr(ts, attr))
 		
 		# 平滑曲线，观察规律
