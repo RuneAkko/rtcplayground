@@ -1,7 +1,7 @@
 import glob
 import os.path
 import random
-
+import json
 import numpy as np
 from fitter import Fitter
 from matplotlib import pyplot as plt
@@ -165,8 +165,41 @@ def genNewTraceTest():
 	genNewTrace(newTracePath, trace_num)
 
 
+def genSpecialTraceTest():
+	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/specialTrace/"
+	if not os.path.exists(newTracePath):
+		os.mkdir(newTracePath)
+	template = {
+		"type": "video",
+		"downlink": {},
+		"uplink": {
+			"trace_pattern": [
+				{
+					"duration": 50 * 1000,
+					"capacity": 1000,
+				},
+				{
+					"duration": 50 * 1000,
+					"capacity": 2.5 * 1000,
+				},
+				{
+					"duration": 50 * 1000,
+					"capacity": 500,
+				},
+				{
+					"duration": 50 * 1000,
+					"capacity": 1000,
+				},
+			]
+		}
+	}
+	json_str = json.dumps(template, indent=1)
+	with open(newTracePath + "special01.json", "w") as f:
+		f.write(json_str)
+
+
 if __name__ == "__main__":
-	genNewTraceTrain()
+	genSpecialTraceTest()
 # f = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/*.json"
 # ff = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces"
 # dealWithTrace(ff, f)
