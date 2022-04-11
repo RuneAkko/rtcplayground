@@ -82,7 +82,7 @@ class GCC(object):
 		
 		if self.arrivalFilter.groupNum + len(self.inflightGroups) < 2:
 			self.inflightGroups += copy.deepcopy(self.arrivalFilter.pktGroups)
-			return self.predictionDelayBwe
+			return self.predictionBandwidth
 		
 		self.arrivalFilter.pktGroups = self.inflightGroups + self.arrivalFilter.pktGroups
 		self.arrivalFilter.groupNum = len(self.arrivalFilter.pktGroups)
@@ -93,9 +93,9 @@ class GCC(object):
 		
 		queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
 		
-		# # gradient 没变化，带宽估计不变
-		# if queueDelayDelta == 0:
-		# 	return self.predictionDelayBwe
+		# gradient 没变化，带宽估计不变
+		if queueDelayDelta == 0:
+			return self.predictionBandwidth
 		
 		# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间
 		estimateQueueDelayDuration = queueDelayDelta * \
@@ -125,5 +125,5 @@ class GCC(object):
 		logging.info("[in this interval] now real rtt is [%s]",
 		             self.rttCalculator.rtt)
 		logging.info("[in this interval] aimd control rate is [%s] mbps", rate / 1000000)
-		self.predictionDelayBwe = rate
+		self.predictionBandwidth = rate
 		return rate
