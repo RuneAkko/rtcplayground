@@ -184,9 +184,11 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 
+	drawLine(dirName, traceName + "-esimate-" + estimationName, queueDelayDeltaLine)
 
-traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
-# traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
+
+# traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
+traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
 
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:

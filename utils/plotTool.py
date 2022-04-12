@@ -17,7 +17,10 @@ def drawLine(dirName, bigName, *data: Line):
 		os.mkdir(dirName)
 	bigName = bigName
 	for line in data:
-		x = line.x  #
+		# x = line.x  #
+		# x time axis, default interval-60ms
+		# turn to second
+		x = [tmp * 60 / 1000 for tmp in line.x]
 		y = line.y  # 
 		name = line.name
 		plt.plot(x, y, label=name)

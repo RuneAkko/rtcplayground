@@ -64,7 +64,7 @@ class GCC(object):
 		loss_rate = self.getEstimateBandwidthByLoss()
 		delay_rate = self.getEstimateBandwidthByDelay()
 		self.predictionBandwidth = min(
-			loss_rate, delay_rate
+			delay_rate, delay_rate
 		)
 		# self.predictionBandwidth = delay_rate
 		logging.info("[in this interval] delay-rate is [%s] mbps",
