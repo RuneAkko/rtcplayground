@@ -4,6 +4,17 @@ from utils.group import pktGroup
 from utils.info import pktInfo
 
 
+def condition_1(group: pktGroup, next: pktInfo):
+	if len(group.pkts) == 0:
+		return 0
+	return next.send_timestamp_ms - group.pkts[-1].send_timestamp_ms
+
+
+# def condition_2(group: pktGroup, next: pktInfo):
+# 	result = False
+# 	result = next.receive_timestamp_ms - group.arrivalTs <= 5
+
+
 class ArrivalFilter:
 	def __init__(self, burst):
 		self.burstInterval = burst
@@ -29,15 +40,15 @@ class ArrivalFilter:
 			if ele.send_timestamp_ms < group.sendTs:
 				# out of order send/departure
 				continue
-			# # condition-1
-			# if ele.send_timestamp_ms - group.pkts[-1].send_timestamp_ms <= self.burstInterval:
-			# 	group.addPkt(ele)
-			# 	continue
-			# # condition-2
-			# if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
-			# 	if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
-			# 		group.addPkt(ele)
-			# 		continue
+			# condition-1
+			if condition_1(group, ele) <= self.burstInterval:
+				group.addPkt(ele)
+				continue
+			# condition-2
+			if ele.receive_timestamp_ms - group.arrivalTs <= self.burstInterval:
+				if (ele.receive_timestamp_ms - group.arrivalTs) - (ele.send_timestamp_ms - group.sendTs) < 0:
+					group.addPkt(ele)
+					continue
 			groupList.append(group)
 			group = pktGroup()
 			group.addPkt(ele)
