@@ -110,7 +110,7 @@ def estimatorTest(tracePath, estimatorTag):
 	# ==================== dig gcc internal args
 	queueDelayDelta = [0]
 	gamma = [0]
-	gccState = [0] # -1:decrease, 0:hold,1:increase-add,2:increase-mult
+	gccState = [0]  # -1:decrease, 0:hold,1:increase-add,2:increase-mult
 	
 	while not traceDone and step < max_step:
 		if estimatorTag == 0:
@@ -128,7 +128,7 @@ def estimatorTest(tracePath, estimatorTag):
 		if estimatorTag == 0:
 			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
 			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
-			gccState.append()
+			gccState.append(env.ruleEstimator.gcc.rateController.digLog)
 		if estimatorTag == 1:
 			gamma.append(env.geminiEstimator.gcc_rate_controller.trendline_estimator.trendline * 4)
 			queueDelayDelta.append(env.geminiEstimator.gcc_rate_controller.detector.T)
@@ -152,7 +152,7 @@ def estimatorTest(tracePath, estimatorTag):
 	delayCurve.x = stepList
 	delayCurve.y = delayList
 	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
-
+	
 	lossCurve = Line()
 	lossCurve.name = traceName + "-delay-" + estimationName
 	lossCurve.x = stepList
@@ -169,7 +169,6 @@ def estimatorTest(tracePath, estimatorTag):
 	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
 	# writeStatsReports(netDataSavePath, netDataList)
 	
-	
 	gammaNegative = [x * -1 for x in gamma]
 	gammaLine, gammaNegativeLine, queueDelayDeltaLine = Line(), Line(), Line()
 	gammaLine.name = traceName + "-gamma" + "-" + estimationName
@@ -185,11 +184,15 @@ def estimatorTest(tracePath, estimatorTag):
 	queueDelayDeltaLine.y = queueDelayDelta
 	
 	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
-
+	
 	drawLine(dirName, traceName + "-esimate-" + estimationName, queueDelayDeltaLine)
 	
+	gccStateLine = Line()
+	gccStateLine.name = traceName + "-gccState-" + estimationName
+	gccStateLine.x = stepList
+	gccStateLine.y = gccState
 	
-	gccState =
+	drawLine(dirName, traceName + "-esimate-" + estimationName, gccStateLine)
 
 
 # traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
