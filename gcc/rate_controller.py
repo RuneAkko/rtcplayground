@@ -30,6 +30,8 @@ class RateController:
 		self.type = aimdType.MAX_UNKNOWN
 		
 		self.digLog = 0
+		
+		self.digLogV2 = []
 	
 	def updateDigLog(self, state):
 		if state == "increase":

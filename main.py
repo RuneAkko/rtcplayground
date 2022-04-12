@@ -1,5 +1,6 @@
 import glob
 
+import numpy as np
 import torch
 from scipy.signal import savgol_filter
 
@@ -181,7 +182,8 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	queueDelayDeltaLine.name = traceName + "-delay" + "-" + estimationName
 	queueDelayDeltaLine.x = stepList
-	queueDelayDeltaLine.y = queueDelayDelta
+	
+	queueDelayDeltaLine.y = prefilter(queueDelayDelta)
 	
 	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 	
@@ -193,6 +195,19 @@ def estimatorTest(tracePath, estimatorTag):
 	gccStateLine.y = gccState
 	
 	drawLine(dirName, traceName + "-esimate-" + estimationName, gccStateLine)
+
+
+def prefilter(y):
+	np.abs([-1, 2])
+	
+	y1 = [abs(tmp) for tmp in y]
+	mediaQ = np.median(y1)
+	last = 0
+	for i, v in enumerate(y):
+		if abs(v) > 10 * mediaQ:
+			y[i] = last
+		last = y[i]
+	return y
 
 
 # traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)

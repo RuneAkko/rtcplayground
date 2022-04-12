@@ -10,6 +10,17 @@ class kalman:
 		self.processUncertainty = 1 * 10 ^ -3
 		self.estimateError = 0.1
 		self.measurementUncertainty = 0.01
+		
+		self.useTime = 0
+	
+	def reset(self):
+		self.gain = 0
+		self.estimate = 0  # ms
+		self.processUncertainty = 1 * 10 ^ -3
+		self.estimateError = 0.1
+		self.measurementUncertainty = 0.01
+		
+		self.useTime = 0
 	
 	def updateEstimate(self, measurement):
 		z = measurement - self.estimate
@@ -36,7 +47,13 @@ class kalman:
 		self.estimate += self.gain * z  # ms
 		self.estimateError = (1 - self.gain) * self.measurementUncertainty
 	
-	def run(self, delayDeltas):
+	def run(self, delayDeltas, currentTime):
+		self.useTime += currentTime
+		
 		for ele in delayDeltas:
 			self.updateEstimate(ele)
+		
+		if self.useTime > 100:
+			self.reset()
+		
 		return self.estimate
