@@ -208,19 +208,6 @@ def prefilter(y):
 	return y
 
 
-def prefilter(y):
-	np.abs([-1, 2])
-	
-	y1 = [abs(tmp) for tmp in y]
-	mediaQ = np.median(y1)
-	last = 0
-	for i, v in enumerate(y):
-		if abs(v) > 10 * mediaQ:
-			y[i] = last
-		last = y[i]
-	return y
-
-
 # traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
 traceFiles = glob.glob(f"./mytraces/specialTrace/03.json", recursive=False)
 
