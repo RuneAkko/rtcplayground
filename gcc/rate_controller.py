@@ -28,6 +28,22 @@ class RateController:
 		self.increaseFactor = 1.05
 		
 		self.type = aimdType.MAX_UNKNOWN
+		
+		self.digLog = 0
+	
+	def updateDigLog(self, state):
+		if state == "increase":
+			if self.type == aimdType.MAX_UNKNOWN:
+				self.digLog = 2
+			
+			if self.type == aimdType.NEAR_MAX:
+				self.digLog = 1
+		
+		if state == "decrease":
+			self.digLog = -1
+		
+		if state == "hold":
+			self.digLog = 0
 	
 	def _updateRateHatAverageWithEMA(self, measureRateKbps):
 		alpha = 0.05
@@ -72,11 +88,16 @@ class RateController:
 		self._updateRateHatAverageWithEMA(self.rateHatKbps)
 		
 		if state == State.INCREASE:
-			return self.increase()
+			r = self.increase()
+			self.updateDigLog("increase")
+			return r
 		elif state == State.DECREASE:
-			return self.decrease()
+			r = self.decrease()
+			self.updateDigLog("decrease")
+			return r
 		else:
 			logging.info("state is [Hold]")
+			self.updateDigLog("hold")
 			return self.lastTargetRate
 	
 	def increase(self) -> float:
@@ -101,6 +122,7 @@ class RateController:
 		
 		self.lastRateUpdateTime = self.nowTime
 		self.lastTargetRate = result
+		
 		return self.lastTargetRate
 	
 	def decrease(self) -> float:
@@ -108,11 +130,11 @@ class RateController:
 		result = self.decreaseFactor * self.rateHat
 		
 		if result > self.lastTargetRate:
-			if self.type != "Multi":
+			if self.type != aimdType.MAX_UNKNOWN:
 				result = (self.decreaseFactor * self.average_max_rate_kbps * 1000)
 			result = min(result, self.lastTargetRate)
 		
-		self.type = "Additive"
+		self.type = aimdType.NEAR_MAX
 		
 		if self.rateHatKbps < self.average_max_rate_kbps - 3 * self.average_max_rate_kbps_std:
 			self.average_max_rate_kbps = -1.0

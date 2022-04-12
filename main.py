@@ -110,6 +110,7 @@ def estimatorTest(tracePath, estimatorTag):
 	# ==================== dig gcc internal args
 	queueDelayDelta = [0]
 	gamma = [0]
+	gccState = [0] # -1:decrease, 0:hold,1:increase-add,2:increase-mult
 	
 	while not traceDone and step < max_step:
 		if estimatorTag == 0:
@@ -127,6 +128,7 @@ def estimatorTest(tracePath, estimatorTag):
 		if estimatorTag == 0:
 			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
 			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
+			gccState.append()
 		if estimatorTag == 1:
 			gamma.append(env.geminiEstimator.gcc_rate_controller.trendline_estimator.trendline * 4)
 			queueDelayDelta.append(env.geminiEstimator.gcc_rate_controller.detector.T)
@@ -185,6 +187,9 @@ def estimatorTest(tracePath, estimatorTag):
 	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 
 	drawLine(dirName, traceName + "-esimate-" + estimationName, queueDelayDeltaLine)
+	
+	
+	gccState =
 
 
 # traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
