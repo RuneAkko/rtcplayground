@@ -4,7 +4,7 @@ from .adaptive_threshold import AdaptiveThreshold
 
 class OveruseDetector:
 	def __init__(self):
-		self.overuse_time_th = 10  # ms, 触发 overuse signal 至少需要持续的时间
+		# self.overuse_time_th = 10  # ms, 触发 overuse signal 至少需要持续的时间
 		self.lastSignal = Signal.NORMAL  # 上次 detect 得到的信号
 		
 		self.overuseDuration = -1  # ms, 认定为 overuse stage 已经持续的时间
@@ -31,18 +31,18 @@ class OveruseDetector:
 		
 		# above
 		if nowSignal == Signal.OVER_USE:
-			if self.overuseDuration == -1:
-				self.overuseDuration = currentIntervalDuration / 2
-			else:
-				self.overuseDuration += currentIntervalDuration
-			
-			self.overuseContinueCounter += 1
-			
-			if self.overuseDuration > self.overuse_time_th and self.overuseContinueCounter > 1:
-				if estimateDelayDuration >= self.lastEstimateDelayDuration:
-					finalSignal = Signal.OVER_USE
-					self.overuseDuration = 0
-					self.overuseContinueCounter = 0
+			# if self.overuseDuration == -1:
+			# 	self.overuseDuration = currentIntervalDuration / 2
+			# else:
+			# 	self.overuseDuration += currentIntervalDuration
+			#
+			# self.overuseContinueCounter += 1
+			#
+			# if self.overuseDuration > self.overuse_time_th and self.overuseContinueCounter > 1:
+			if estimateDelayDuration >= self.lastEstimateDelayDuration:
+				finalSignal = Signal.OVER_USE
+			# self.overuseDuration = 0
+			# self.overuseContinueCounter = 0
 		
 		# under
 		if nowSignal == Signal.UNDER_USE:

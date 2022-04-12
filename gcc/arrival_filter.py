@@ -10,11 +10,6 @@ def condition_1(group: pktGroup, next: pktInfo):
 	return next.send_timestamp_ms - group.pkts[-1].send_timestamp_ms
 
 
-# def condition_2(group: pktGroup, next: pktInfo):
-# 	result = False
-# 	result = next.receive_timestamp_ms - group.arrivalTs <= 5
-
-
 class ArrivalFilter:
 	def __init__(self, burst):
 		self.burstInterval = burst

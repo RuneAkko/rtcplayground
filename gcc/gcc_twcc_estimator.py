@@ -61,7 +61,7 @@ class GCC(object):
 		self.record = copy.deepcopy(record)
 	
 	def getEstimateBandwidth(self) -> int:
-		loss_rate = self.getEstimateBandwidthByLoss()
+		# loss_rate = self.getEstimateBandwidthByLoss()
 		delay_rate = self.getEstimateBandwidthByDelay()
 		self.predictionBandwidth = min(
 			delay_rate, delay_rate
@@ -104,9 +104,10 @@ class GCC(object):
 		
 		if queueDelayDelta is None:
 			queueDelayDelta = 0
+		
 		# gradient 没变化，带宽估计不变
-		if queueDelayDelta == 0:
-			return self.predictionBandwidth
+		# if queueDelayDelta == 0:
+		# 	return self.predictionBandwidth
 		
 		if self.filterType == "tlf":
 			# 估计时延：估计delay斜率*单位时间数，最长考虑 60 个单位时间

@@ -21,7 +21,7 @@ def drlEstimatorTest(tracePath, modelPath):
 	trace = Trace(traceFilePath=tracePath)
 	trace.readTraceFile()
 	# trace.preFilter()
-	# trace.filterForTime()
+	trace.filterForTime()
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
 	model = ActorCritic(5, 1, exploration_param=0.05)

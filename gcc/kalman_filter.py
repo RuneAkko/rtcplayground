@@ -53,7 +53,7 @@ class kalman:
 		for ele in delayDeltas:
 			self.updateEstimate(ele)
 		
-		if self.useTime > 100:
-			self.reset()
+		# if self.useTime > 100:
+		# 	self.reset()
 		
 		return self.estimate
