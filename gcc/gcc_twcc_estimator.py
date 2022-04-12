@@ -55,7 +55,7 @@ class GCC(object):
 		self.inflightGroups = []
 		
 		#
-		self.queueDelayDelta = None
+		self.queueDelayDelta = 0
 	
 	def setIntervalState(self, record: pktRecord):
 		self.record = copy.deepcopy(record)
@@ -99,6 +99,8 @@ class GCC(object):
 		else:
 			queueDelayDelta = self.klm.run(delayDelta)
 		
+		if queueDelayDelta is None:
+			queueDelayDelta = 0
 		# gradient 没变化，带宽估计不变
 		if queueDelayDelta == 0:
 			return self.predictionBandwidth

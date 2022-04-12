@@ -2,6 +2,7 @@ import glob
 
 import torch
 from scipy.signal import savgol_filter
+import numpy as np
 
 from deep_rl.actor_critic import ActorCritic
 from offlineStatTest import writeStatsReports
@@ -181,8 +182,11 @@ def estimatorTest(tracePath, estimatorTag):
 	
 	queueDelayDeltaLine.name = traceName + "-delay" + "-" + estimationName
 	queueDelayDeltaLine.x = stepList
-	queueDelayDeltaLine.y = queueDelayDelta
-	
+	# print(queueDelayDelta)
+	# return
+	queueDelayDeltaLine.y = prefilter(queueDelayDelta)
+
+
 	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 	
 	drawLine(dirName, traceName + "-esimate-" + estimationName, queueDelayDeltaLine)
@@ -192,17 +196,26 @@ def estimatorTest(tracePath, estimatorTag):
 	gccStateLine.x = stepList
 	gccStateLine.y = gccState
 	
-	drawLine(dirName, traceName + "-esimate-" + estimationName, gccStateLine)
+	drawLine(dirName, traceName + "-gccState-" + estimationName, gccStateLine)
 
+def prefilter(y):
+	y1 = np.abs(y)
+	mediaQ = np.median(y1)
+	last = 0
+	for i, v in enumerate(y):
+		if abs(v) > 10 * mediaQ:
+			y[i] = last
+		last = y[i]
+	return y
 
 # traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
-traceFiles = glob.glob(f"./mytraces/specialTrace/*.json", recursive=False)
+traceFiles = glob.glob(f"./mytraces/specialTrace/03.json", recursive=False)
 
 models = "./model/ppo_2022_04_10_04_53_52.pth"
 for ele in traceFiles:
 	estimatorTest(ele, 0)
-for ele in traceFiles:
-	estimatorTest(ele, 1)
+# for ele in traceFiles:
+# 	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # # 	estimatorTest(ele, 1)
 # for ele in traceFiles:
