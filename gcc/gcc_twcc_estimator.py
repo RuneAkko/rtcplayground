@@ -102,6 +102,8 @@ class GCC(object):
 		if queueDelayDelta is None:
 			queueDelayDelta = 0
 		
+		if queueDelayDelta is None:
+			queueDelayDelta = 0
 		# gradient 没变化，带宽估计不变
 		if queueDelayDelta == 0:
 			return self.predictionBandwidth
