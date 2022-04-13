@@ -11,13 +11,14 @@ from .rtt_calculator import rttCalculator
 from .state_machine import StateMachine
 from .trendline_filter import TrendLineFilter
 from .kalman_filter import kalman
+import numpy as np
 
 MaxGroupNum = 60  # 每个 interval 纳入考虑的最大范围；pkt group 的个数；
 GroupBurstInterval = 5  # ms, pacer 一次性发送 5 ms 内的包，认为是一个 pkt group;
 
 
 class GCC(object):
-	def __init__(self, predictionBandwidth, filterType="kal"):
+	def __init__(self, predictionBandwidth, filterType="none"):
 		self.predictionBandwidth = predictionBandwidth  # bps
 		self.predictionDelayBwe = predictionBandwidth  # bps
 		self.predictionLossBwe = predictionBandwidth  # bps
@@ -96,8 +97,10 @@ class GCC(object):
 		
 		if self.filterType == "tlf":
 			queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
-		else:
+		elif self.filterType == "kal":
 			queueDelayDelta = self.klm.run(delayDelta, self.currentTimestamp)
+		else:
+			queueDelayDelta = np.mean(delayDelta)
 		
 		if queueDelayDelta is None:
 			queueDelayDelta = 0
