@@ -12,10 +12,10 @@ class Line:
 		self.y = []
 
 
-def drawLine(dirName, bigName, *data: Line):
+def drawLine(dirName, *data: Line):
 	if not os.path.exists(dirName):
 		os.mkdir(dirName)
-	bigName = bigName
+	bigName = data[0].name
 	for line in data:
 		# x = line.x  #
 		# x time axis, default interval-60ms

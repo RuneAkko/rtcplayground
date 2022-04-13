@@ -31,7 +31,7 @@ class RateController:
 		
 		self.digLog = 0
 		
-		self.digLogV2 = []
+		self.digLogV2 = []  # average_max_rate_kbps，average_max_rate_kbps_std，rateHatKbps
 	
 	def updateDigLog(self, state):
 		if state == "increase":
@@ -87,6 +87,8 @@ class RateController:
 		self.rateHatKbps = self.rateHat / 1000  # kbps
 		self.lastRTT = rtt
 		self.nowTime = nowTime
+		
+		self.digLogV2 = [self.average_max_rate_kbps, self.average_max_rate_kbps_std, self.rateHatKbps]
 		self._updateRateHatAverageWithEMA(self.rateHatKbps)
 		
 		if state == State.INCREASE:

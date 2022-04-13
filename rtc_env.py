@@ -13,6 +13,7 @@ from geminiGCC.main_estimator import mainGeminiEstimator, get_time_ms
 from gym import spaces
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
+from utils.trace import Trace
 
 sys.path.append(os.path.join(
 	os.path.dirname(os.path.abspath(__file__)), "gym"))
@@ -80,7 +81,9 @@ class GymEnv:
 		
 		self.train_trace_set = None
 		
-		self.state_dim = 5
+		self.state_dim = 6
+		
+		self.now_trace = Trace()
 	
 	def setAlphaRtcGym(self, trace):
 		"""
@@ -190,13 +193,16 @@ class GymEnv:
 		self.gym_env = alphartc_gym.Gym()
 		trace_path = random.choice(self.train_trace_set)
 		print(trace_path)
+		# 训练 TRACE 是处理过的
+		self.now_trace.traceFilePath = trace_path
+		self.now_trace.readTraceFile()
 		self.gym_env.reset(trace_path=trace_path,
 		                   report_interval_ms=self.step_time,
 		                   duration_time_ms=0)
 		self.lastBwe = INIT_BANDWIDTH
 		return [0.0 for _ in range(self.state_dim)]
 	
-	def step(self, action):
+	def step(self, action, interval_time_step):
 		"""
 		
 		:param action: 0.0-1.0
@@ -221,10 +227,12 @@ class GymEnv:
 			self.packet_record.on_receive(packet_info)
 		
 		# calculate state
+		cap = self.now_trace.tracePatterns[interval_time_step].capacity * 1000  # bps
 		# in this step/interval , state value
 		states = []
 		receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
-		states.append(liner_to_log(receiving_rate))  # 0.0-1.0
+		states.append(liner_to_log(receiving_rate))
+		states.append(max(receiving_rate / cap, 1))  # 0.0-1.0
 		
 		delay = self.packet_record.calculate_average_delay(interval=self.step_time)
 		states.append(min(delay / 1000, 2) / 2)  # second , with no base delay
@@ -243,8 +251,8 @@ class GymEnv:
 		
 		# reward function: gemini
 		# rate - delay -loss -
-		reward = states[
-			         0] - 2.5 * states[1] - 5 * states[2] - 0.01 * states[4]
+		# reward = states[
+		# 	         0] - 2.5 * states[1] - 5 * states[2] - 0.02 * states[4]
 		
 		# # reward : my
 		# reward = 4 * states[
@@ -253,4 +261,8 @@ class GymEnv:
 		
 		# reward microsoft:
 		# reward = 0.6*np.log(4*receiving_rate/1000000+1) - delay*2/1000- 10 *loss_ratio
+		
+		# reward gemini v1
+		reward = states[
+			         1] - 1.5 * states[2] - 3 * states[3] - 0.02 * states[5]
 		return states, reward, done, {}

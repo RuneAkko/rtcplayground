@@ -61,12 +61,12 @@ class GCC(object):
 		self.record = copy.deepcopy(record)
 	
 	def getEstimateBandwidth(self) -> int:
-		# loss_rate = self.getEstimateBandwidthByLoss()
+		loss_rate = self.getEstimateBandwidthByLoss()
 		delay_rate = self.getEstimateBandwidthByDelay()
 		self.predictionBandwidth = min(
-			delay_rate, delay_rate
+			delay_rate, loss_rate
 		)
-		# self.predictionBandwidth = delay_rate
+		self.predictionBandwidth = delay_rate
 		logging.info("[in this interval] delay-rate is [%s] mbps",
 		             delay_rate / 1000000)
 		# self.rateLossController.bwe = self.predictionBandwidth
@@ -141,5 +141,5 @@ class GCC(object):
 		logging.info("[in this interval] now real rtt is [%s]",
 		             self.rttCalculator.rtt)
 		logging.info("[in this interval] aimd control rate is [%s] mbps", rate / 1000000)
-		self.predictionBandwidth = rate
+		# self.predictionBandwidth = rate
 		return rate

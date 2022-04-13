@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="0300f304-dc9a-4a62-821a-b0a987c1de7c" name="skyclass-ali">
+        <fileTransfer accessType="SFTP" host="47.105.55.44" port="22" sshConfigId="9acd666e-4bbd-4c41-9b70-61978b39da9b" sshConfig="mhs@47.105.55.44:22 agent" authAgent="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="4631eded-fe10-488b-a652-321a70dd1355" name="lab-10-184-17-33">
+        <fileTransfer accessType="SFTP" host="10.184.17.33" port="4280" sshConfigId="4e58720b-a111-4c50-bf1e-483dd029b18d" sshConfig="mahansen@10.184.17.33:4280 agent" authAgent="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

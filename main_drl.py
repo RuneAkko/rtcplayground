@@ -22,7 +22,7 @@ def main():
 	
 	lr = 5e-3  # Adam parameters
 	betas = (0.9, 0.999)
-	state_dim = 5  #
+	state_dim = 6  #
 	action_dim = 1  #
 	data_path = './data/'  # Save model and reward curve here
 	#############################################
@@ -48,13 +48,13 @@ def main():
 			state = torch.Tensor(env.reset())
 			while not done and interval_time_step < update_interval:  # for one train trace
 				action = ppo.select_action(state, storage)
-				state, reward, done, _ = env.step(action)
+				state, reward, done, _ = env.step(action, interval_time_step)
 				state = torch.Tensor(state)
 				storage.rewards.append(reward)
 				storage.is_terminals.append(done)
 				interval_time_step += 1
 				episode_reward += reward
-				# print('\r interval_time_step is [%d]', interval_time_step, end="")
+		# print('\r interval_time_step is [%d]', interval_time_step, end="")
 		# update policy || trace is over
 		next_value = ppo.get_value(state)
 		storage.compute_returns(next_value, gamma)

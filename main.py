@@ -114,6 +114,8 @@ def estimatorTest(tracePath, estimatorTag):
 	gamma = [0]
 	gccState = [0]  # -1:decrease, 0:hold,1:increase-add,2:increase-mult
 	
+	digLogV2 = [[0, 0, 0]]
+	
 	while not traceDone and step < max_step:
 		if estimatorTag == 0:
 			rate, traceDone, recvRate, delay, qos3, qos4, netData = env.testV1(rate)
@@ -131,70 +133,47 @@ def estimatorTest(tracePath, estimatorTag):
 			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
 			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
 			gccState.append(env.ruleEstimator.gcc.rateController.digLog)
+			digLogV2.append(env.ruleEstimator.gcc.rateController.digLogV2)
+		
 		if estimatorTag == 1:
 			gamma.append(env.geminiEstimator.gcc_rate_controller.trendline_estimator.trendline * 4)
 			queueDelayDelta.append(env.geminiEstimator.gcc_rate_controller.detector.T)
 	
 	dirName = "fig"
 	
-	gccRate = Line()
-	gccRate.name = traceName + "-gccRate" + "-" + estimationName
-	gccRate.x = stepList
-	gccRate.y = [x / 1000 for x in targetRate]  # kbps
-	# gccRate.y = savgol_filter(gccRate.y, 20, 1, mode="nearest")
-	
-	recvRate = Line()
-	recvRate.name = traceName + "-recvRate" + "-" + estimationName
-	recvRate.x = stepList
-	recvRate.y = [x / 1000 for x in recvList]  # kbps
-	# recvRate.y = savgol_filter(recvRate.y, 21, 4, mode="nearest")
-	
-	delayCurve = Line()
-	delayCurve.name = traceName + "-delay-" + estimationName
-	delayCurve.x = stepList
-	delayCurve.y = delayList
-	# delayCurve.y = savgol_filter(delayCurve.y, 20, 1, mode="nearest")
-	
-	lossCurve = Line()
-	lossCurve.name = traceName + "-delay-" + estimationName
-	lossCurve.x = stepList
-	lossCurve.y = lossList
+	gccRate = genLineV2(stepList, [x / 1000 for x in targetRate], traceName + "-gccRate" + "-" + estimationName)
+	recvRate = genLineV2(stepList, [x / 1000 for x in recvList], traceName + "-recvRate" + "-" + estimationName)
+	delayCurve = genLineV2(stepList, delayList, traceName + "-delay-" + estimationName)
+	lossCurve = genLineV2(stepList, lossList, traceName + "-delay-" + estimationName)
 	
 	traceCap = trace.genLine("capacity", smooth=False)
 	
-	drawLine(dirName, traceName + "-rate-" + estimationName, traceCap, recvRate, gccRate)
-	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
-	drawLine(dirName, traceName + "-loss-" + estimationName, lossCurve)
+	drawLine(dirName, traceCap, recvRate, gccRate)
+	drawLine(dirName, delayCurve)
+	drawLine(dirName, lossCurve)
 	
-	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	# writeStatsReports(netDataSavePath, netDataList)
-	# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
-	# writeStatsReports(netDataSavePath, netDataList)
+	gammaLine = genLineV2(stepList, gamma, traceName + "-threshold" + "-" + estimationName)
+	gammaNegativeLine = genLineV2(stepList, [x * -1 for x in gamma], traceName + "-threshold" + "-" + estimationName)
+	queueDelayDeltaLine = genLineV2(stepList, prefilter(queueDelayDelta), traceName + "-esimate-" + estimationName)
+	drawLine(dirName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
+	drawLine(dirName, queueDelayDeltaLine)
 	
-	gammaNegative = [x * -1 for x in gamma]
-	gammaLine, gammaNegativeLine, queueDelayDeltaLine = Line(), Line(), Line()
-	gammaLine.name = traceName + "-gamma" + "-" + estimationName
-	gammaLine.x = stepList
-	gammaLine.y = gamma
-	
-	gammaNegativeLine.name = traceName + "-gamma" + "-" + estimationName
-	gammaNegativeLine.x = stepList
-	gammaNegativeLine.y = gammaNegative
-	
-	queueDelayDeltaLine.name = traceName + "-delay" + "-" + estimationName
-	queueDelayDeltaLine.x = stepList
-	
-	queueDelayDeltaLine.y = prefilter(queueDelayDelta)
-	drawLine(dirName, traceName + "-threshold-" + estimationName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
-	
-	drawLine(dirName, traceName + "-esimate-" + estimationName, queueDelayDeltaLine)
-	
-	gccStateLine = Line()
-	gccStateLine.name = traceName + "-gccState-" + estimationName
-	gccStateLine.x = stepList
-	gccStateLine.y = gccState
-	
-	drawLine(dirName, traceName + "-gccState-" + estimationName, gccStateLine)
+	gccStateLine = genLineV2(stepList, gccRate, traceName + "-gccState-" + estimationName)
+	drawLine(dirName, gccStateLine)
+
+
+# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+# writeStatsReports(netDataSavePath, netDataList)
+# netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
+# writeStatsReports(netDataSavePath, netDataList)
+def genLineV2(x, y, name, smooth=False) -> Line:
+	tmp = Line()
+	tmp.name = name
+	tmp.x = x
+	if smooth:
+		y = savgol_filter(y, 21, 4, mode="nearest")
+	tmp.y = y
+	return tmp
 
 
 def prefilter(y):
