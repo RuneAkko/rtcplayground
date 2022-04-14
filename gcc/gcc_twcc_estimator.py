@@ -2,6 +2,7 @@ import copy
 import logging
 
 from utils.record import pktRecord
+from utils.info import pktInfo
 from .arrival_filter import ArrivalFilter
 from .loss_based_bwe import LoseBasedBwe
 from .overuse_detector import OveruseDetector
@@ -24,7 +25,10 @@ class GCC(object):
 		self.predictionLossBwe = predictionBandwidth  # bps
 		self.minGroupNum = MaxGroupNum
 		
-		self.record = None
+		self.record = pktRecord()
+		self.pktsInterval = []
+		self.loss = 0
+		
 		self.currentTimestamp = -1.0  # the last pkt arrival time of this interval,ms
 		
 		self.firstGroupArrivalTime = 0  # the first group's last pkt arrival time ,ms
@@ -58,8 +62,33 @@ class GCC(object):
 		#
 		self.queueDelayDelta = 0
 	
-	def setIntervalState(self, record: pktRecord):
-		self.record = copy.deepcopy(record)
+	def genMyPkt(self, statsData):
+		tmp = []
+		
+		for stats in statsData:
+			pkt_info = pktInfo()
+			pkt_info.payload_type = stats["payload_type"]
+			pkt_info.ssrc = stats["ssrc"]
+			pkt_info.sequence_number = stats["sequence_number"]
+			pkt_info.send_timestamp_ms = stats["send_time_ms"]
+			pkt_info.receive_timestamp_ms = stats["arrival_time_ms"]
+			pkt_info.padding_length = stats["padding_length"]
+			pkt_info.header_length = stats["header_length"]
+			pkt_info.payload_size = stats["payload_size"]
+			
+			pkt_info.size = stats["padding_length"] + \
+			                stats["header_length"] + stats["payload_size"]
+			
+			pkt_info.bandwidth_prediction_bps = self.predictionBandwidth
+			
+			tmp.append(pkt_info)
+		return tmp
+	
+	def setIntervalState(self, record: pktRecord, stats):
+		
+		self.pktsInterval = self.genMyPkt(stats)
+		
+		self.loss = record.calculate_loss_ratio(60)
 	
 	def getEstimateBandwidth(self) -> int:
 		loss_rate = self.getEstimateBandwidthByLoss()
@@ -74,12 +103,12 @@ class GCC(object):
 		return self.predictionBandwidth
 	
 	def getEstimateBandwidthByLoss(self) -> int:
-		lossRate = self.record.calculate_loss_ratio()
-		logging.info("[in this interval] loss-ratio is [%s]", lossRate)
-		return self.rateLossController.lossBasedBwe(lossRate)
+		# loss = self.record.calculate_loss_ratio()
+		logging.info("[in this interval] loss-ratio is [%s]", self.loss)
+		return self.rateLossController.lossBasedBwe(self.loss)
 	
 	def getEstimateBandwidthByDelay(self):
-		self.arrivalFilter.preFilter(self.record.pkts)
+		self.arrivalFilter.preFilter(self.pktsInterval)
 		self.totalGroupNum += self.arrivalFilter.groupNum
 		
 		logging.info("[in this interval] group num is [%s]", self.arrivalFilter.groupNum)

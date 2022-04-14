@@ -20,6 +20,8 @@ class mainEstimator(object):
 		
 		self.minBwe = minBwe
 		self.maxBwe = maxBwe
+		
+		self.stats = []
 	
 	def report_states(self, stats: dict):
 		"""
@@ -58,7 +60,7 @@ class mainEstimator(object):
 		]
 		"""
 		if self.state == interfaceState.ESTIMATE:
-			self.pktsRecord.clear()
+			self.stats = []
 		self.state = interfaceState.REPORT
 		
 		if len(stats) <= 0:
@@ -87,16 +89,18 @@ class mainEstimator(object):
 		self.gcc.rttCalculator.simpleRtt(self.pktsRecord.pkts[-1].delay)
 		
 		self.gcc.currentTimestamp = pkt_info.receive_timestamp_ms
+		
+		self.stats.append(stats)
 	
 	def get_estimated_bandwidth(self) -> int:
 		if self.state == interfaceState.REPORT:
 			self.state = interfaceState.ESTIMATE
-		else:
-			return self.predictionBandwidth
+		# else:
+		# 	return self.predictionBandwidth
 		
 		assert self.pktsRecord.packet_num > 0
 		
-		self.gcc.setIntervalState(self.pktsRecord)
+		self.gcc.setIntervalState(self.pktsRecord, self.stats)
 		
 		self.predictionBandwidth = self.gcc.getEstimateBandwidth()
 		

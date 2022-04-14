@@ -9,7 +9,7 @@ from deep_rl.actor_critic import ActorCritic
 from offlineStatTest import writeStatsReports
 from rtc_env import GymEnv
 from rtc_env import log_to_linear
-from utils.plotTool import Line, drawLine
+from utils.plotTool import Line, drawLine, drawScatter
 from utils.trace import Trace
 
 
@@ -133,7 +133,11 @@ def estimatorTest(tracePath, estimatorTag):
 			queueDelayDelta.append(env.ruleEstimator.gcc.queueDelayDelta)
 			gamma.append(env.ruleEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
 			gccState.append(env.ruleEstimator.gcc.rateController.digLog)
-			digLogV2.append(env.ruleEstimator.gcc.rateController.digLogV2)
+			digLogV2.append(
+				[env.ruleEstimator.gcc.rateController.average_max_rate_kbps,
+				 env.ruleEstimator.gcc.rateController.average_max_rate_kbps_std,
+				 env.ruleEstimator.gcc.rateController.rateHatKbps]
+			)
 		
 		if estimatorTag == 1:
 			gamma.append(env.geminiEstimator.gcc_rate_controller.trendline_estimator.trendline * 4)
@@ -144,7 +148,7 @@ def estimatorTest(tracePath, estimatorTag):
 	gccRate = genLineV2(stepList, [x / 1000 for x in targetRate], traceName + "-gccRate" + "-" + estimationName)
 	recvRate = genLineV2(stepList, [x / 1000 for x in recvList], traceName + "-recvRate" + "-" + estimationName)
 	delayCurve = genLineV2(stepList, delayList, traceName + "-delay-" + estimationName)
-	lossCurve = genLineV2(stepList, lossList, traceName + "-delay-" + estimationName)
+	lossCurve = genLineV2(stepList, lossList, traceName + "-loss-" + estimationName)
 	
 	traceCap = trace.genLine("capacity", smooth=False)
 	
@@ -158,8 +162,18 @@ def estimatorTest(tracePath, estimatorTag):
 	drawLine(dirName, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 	drawLine(dirName, queueDelayDeltaLine)
 	
-	gccStateLine = genLineV2(stepList, gccRate, traceName + "-gccState-" + estimationName)
-	drawLine(dirName, gccStateLine)
+	gccStateLine = genLineV2(stepList, gccState, traceName + "-gccState-" + estimationName)
+	drawScatter(dirName, gccStateLine)
+	
+	average_max_rate = genLineV2(stepList, [x[0] for x in digLogV2],
+	                             traceName + "-average_max_rate" + "-" + estimationName)
+	average_max_rate_bound_up = genLineV2(stepList, [x[0] + 3 * x[1] for x in digLogV2],
+	                                      traceName + "-bound_up" + "-" + estimationName)
+	average_max_rate_bound_down = genLineV2(stepList, [x[0] - 3 * x[1] for x in digLogV2],
+	                                        traceName + "-bound_down" + "-" + estimationName)
+	rateHat = genLineV2(stepList, [x[2] for x in digLogV2], traceName + "-rateHat" + "-" + estimationName)
+	
+	drawLine(dirName, average_max_rate, average_max_rate_bound_up, average_max_rate_bound_down, rateHat)
 
 
 # netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
@@ -179,11 +193,11 @@ def genLineV2(x, y, name, smooth=False) -> Line:
 def prefilter(y):
 	y1 = np.abs(y)
 	mediaQ = np.median(y1)
-	last = 0
+	# last = 0
 	for i, v in enumerate(y):
 		if abs(v) > 10 * mediaQ:
-			y[i] = last
-		last = y[i]
+			y[i] = 10 * mediaQ
+	# last = y[i]
 	return y
 
 

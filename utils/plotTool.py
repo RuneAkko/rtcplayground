@@ -30,6 +30,24 @@ def drawLine(dirName, *data: Line):
 	plt.close()
 
 
+def drawScatter(dirName, *data: Line):
+	if not os.path.exists(dirName):
+		os.mkdir(dirName)
+	bigName = data[0].name
+	for line in data:
+		# x = line.x  #
+		# x time axis, default interval-60ms
+		# turn to second
+		x = [tmp * 60 / 1000 for tmp in line.x]
+		y = line.y  #
+		name = line.name
+		plt.scatter(x, y, label=name)
+	plt.legend()
+	plt.savefig(dirName + "/" + bigName)
+	plt.show()
+	plt.close()
+
+
 def drawWith15Scale(bigName, *data: Line):
 	bigName = bigName
 	for line in data:
