@@ -24,7 +24,8 @@ def drlEstimatorTest(tracePath, modelPath):
 	trace.filterForTime()
 	traceName, tracePatterns = trace.traceName, trace.tracePatterns
 	
-	model = ActorCritic(5, 1, exploration_param=0.05)
+	state_dim = 5
+	model = ActorCritic(state_dim, 1, exploration_param=0.05)
 	model.load_state_dict(torch.load(modelPath))
 	
 	max_step = 100000
@@ -35,13 +36,13 @@ def drlEstimatorTest(tracePath, modelPath):
 	lossList = []
 	targetRate = []
 	done = False
-	state = torch.Tensor([0.0 for _ in range(5)])
+	state = torch.Tensor([0.0 for _ in range(state_dim)])
 	while not done and step < max_step:
 		action, _, _ = model.forward(state)
-		state, reward, done, _ = env.step(action)
+		state, reward, done, _ = env.step(action, step)
 		targetRate.append(log_to_linear(action))
 		recvList.append(log_to_linear(state[0]))
-		delayList.append(state[1] * 2 * 1000)
+		delayList.append(state[1])
 		lossList.append(state[2])
 		state = torch.Tensor(state)
 		stepList.append(step)
@@ -73,9 +74,9 @@ def drlEstimatorTest(tracePath, modelPath):
 	lossCurve.y = lossList
 	
 	traceCap = trace.genLine("capacity", smooth=False)
-	drawLine(dirName, traceName + "-rate-" + estimationName, gccRate, recvRate, traceCap)
-	drawLine(dirName, traceName + "-delay-" + estimationName, delayCurve)
-	drawLine(dirName, traceName + "-loss-" + estimationName, lossCurve)
+	drawLine(dirName, gccRate, recvRate, traceCap)
+	drawLine(dirName, delayCurve)
+	drawLine(dirName, lossCurve)
 
 
 def estimatorTest(tracePath, estimatorTag):
