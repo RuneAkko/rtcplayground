@@ -15,7 +15,7 @@ from utils.trace import Trace
 
 def drlEstimatorTest(tracePath, modelPath):
 	estimationName = "drl"
-	dirNameDate = "result/" + estimationName + "/"
+	dirNameDate = "result-" + estimationName + "/"
 	dirName = "fig-drl"
 	
 	env = GymEnv()
@@ -42,11 +42,11 @@ def drlEstimatorTest(tracePath, modelPath):
 	state = torch.Tensor([0.0 for _ in range(state_dim)])
 	while not done and step < max_step:
 		action, _, _ = model.forward(state)
-		state, reward, done, _ = env.step(action, step)
-		targetRate.append(log_to_linear(action))
-		recvList.append(log_to_linear(state[0]))
-		delayList.append(state[1])
-		lossList.append(state[2])
+		state, reward, done, d = env.step(action, step)
+		targetRate.append(float(log_to_linear(action)))
+		recvList.append(float(log_to_linear(state[0])))
+		delayList.append(float(d))
+		lossList.append(float(state[2]))
 		state = torch.Tensor(state)
 		stepList.append(step)
 		step += 1
@@ -62,8 +62,6 @@ def drlEstimatorTest(tracePath, modelPath):
 
 
 def estimatorTest(tracePath, estimatorTag):
-	dirNamePicture = "fig"
-	
 	if estimatorTag == 0:
 		estimationName = "GCC-Native"
 		testversion = "1"
@@ -74,7 +72,8 @@ def estimatorTest(tracePath, estimatorTag):
 		estimationName = "GCC-Ruled"
 		testversion = "3"
 	
-	dirNameDate = "result/" + estimationName + "/"
+	dirNamePicture = "fig-" + estimationName
+	dirNameDate = "result-" + estimationName + "/"
 	
 	env = GymEnv()
 	env.setAlphaRtcGym(tracePath)
@@ -135,7 +134,10 @@ def estimatorTest(tracePath, estimatorTag):
 		
 		if estimatorTag == 1:
 			gamma.append(env.geminiEstimator.gcc_rate_controller.trendline_estimator.trendline * 4)
-			queueDelayDelta.append(env.geminiEstimator.gcc_rate_controller.detector.T)
+			if env.geminiEstimator.gcc_rate_controller.detector.T is None:
+				queueDelayDelta.append(0)
+			else:
+				queueDelayDelta.append(env.geminiEstimator.gcc_rate_controller.detector.T)
 		
 		if estimatorTag == 2:
 			queueDelayDelta.append(env.ruleEstimatorV2.gcc.queueDelayDelta)
@@ -164,20 +166,21 @@ def estimatorTest(tracePath, estimatorTag):
 	drawLine(dirNamePicture, dirNameDate, gammaLine, queueDelayDeltaLine, gammaNegativeLine)
 	drawLine(dirNamePicture, dirNameDate, queueDelayDeltaLine)
 	
-	gccStateLine = genLineV2(stepList, gccState, traceName + "-gccState-" + estimationName)
-	drawScatter(dirNamePicture, gccStateLine)
-	
-	average_max_rate = genLineV2(stepList, [x[0] for x in digLogV2],
-	                             traceName + "-average_max_rate" + "-" + estimationName)
-	average_max_rate_bound_up = genLineV2(stepList, [x[0] + 3 * x[1] for x in digLogV2],
-	                                      traceName + "-bound_up" + "-" + estimationName)
-	average_max_rate_bound_down = genLineV2(stepList, [x[0] - 3 * x[1] for x in digLogV2],
-	                                        traceName + "-bound_down" + "-" + estimationName)
-	
-	rateHat = genLineV2(stepList, [x[2] for x in digLogV2], traceName + "-rateHat" + "-" + estimationName)
-	
-	drawLine(dirNamePicture, dirNameDate, average_max_rate, average_max_rate_bound_up, average_max_rate_bound_down,
-	         rateHat)
+	if estimatorTag == 0:
+		gccStateLine = genLineV2(stepList, gccState, traceName + "-gccState-" + estimationName)
+		drawScatter(dirNamePicture, gccStateLine)
+		
+		average_max_rate = genLineV2(stepList, [x[0] for x in digLogV2],
+		                             traceName + "-average_max_rate" + "-" + estimationName)
+		average_max_rate_bound_up = genLineV2(stepList, [x[0] + 3 * x[1] for x in digLogV2],
+		                                      traceName + "-bound_up" + "-" + estimationName)
+		average_max_rate_bound_down = genLineV2(stepList, [x[0] - 3 * x[1] for x in digLogV2],
+		                                        traceName + "-bound_down" + "-" + estimationName)
+		
+		rateHat = genLineV2(stepList, [x[2] for x in digLogV2], traceName + "-rateHat" + "-" + estimationName)
+		
+		drawLine(dirNamePicture, dirNameDate, average_max_rate, average_max_rate_bound_up, average_max_rate_bound_down,
+		         rateHat)
 
 
 # netDataSavePath = "./netData/" + traceName + "_netData" + "_" + estimationName
@@ -188,7 +191,7 @@ def estimatorTest(tracePath, estimatorTag):
 
 def hybirdEstimatorTest(tracePath, modelPath):
 	estimationName = "GCC-RTS"
-	dirNameDate = "result/" + estimationName + "/"
+	dirNameDate = "result-" + estimationName + "/"
 	env = GymEnv()
 	env.setAlphaRtcGym(tracePath)
 	trace = Trace(traceFilePath=tracePath)
@@ -218,11 +221,11 @@ def hybirdEstimatorTest(tracePath, modelPath):
 		action, _, _ = model.forward(state)
 		rate, traceDone, recvRate, delay, qos3, qos4, state = env.stepHybird(action, step)
 		
-		targetRate.append(log_to_linear(action))
-		recvList.append(log_to_linear(state[0]))
+		targetRate.append(float(log_to_linear(action)))
+		recvList.append(float(log_to_linear(state[0])))
 		
-		delayList.append(state[1])
-		lossList.append(state[2])
+		delayList.append(float(state[1]))
+		lossList.append(float(state[2]))
 		
 		state = torch.Tensor(state)
 		stepList.append(step)
@@ -265,13 +268,13 @@ traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=Fal
 # traceFiles = glob.glob(f"./mytraces/specialTrace/03.json", recursive=False)
 
 models = "./model/ppo_2021_05_13_01_55_53.pth"
-# for ele in traceFiles:
-# 	estimatorTest(ele, 0)
-# for ele in traceFiles:
-# 	estimatorTest(ele, 1)
+for ele in traceFiles:
+	estimatorTest(ele, 0)
+for ele in traceFiles:
+	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # # 	estimatorTest(ele, 1)
 # for ele in traceFiles:
 # 	drlEstimatorTest(ele, models)
-for ele in traceFiles:
-	hybirdEstimatorTest(ele, models)
+# for ele in traceFiles:
+# 	hybirdEstimatorTest(ele, models)

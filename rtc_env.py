@@ -332,7 +332,7 @@ class GymEnv:
 			self.packet_record.on_receive(packet_info)
 		
 		# calculate state
-		cap = self.now_trace.tracePatterns[interval_time_step].capacity * 1000  # bps
+		# cap = self.now_trace.tracePatterns[interval_time_step].capacity * 1000  # bps
 		# in this step/interval , state value
 		states = []
 		receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
@@ -371,4 +371,4 @@ class GymEnv:
 		# reward gemini v1
 		# reward = states[
 		# 	         1] - 1.5 * states[2] - 3 * states[3] - 0.02 * states[5]
-		return states, reward, done, {}
+		return states, reward, done, delay
