@@ -14,6 +14,9 @@ from utils.trace import Trace
 
 
 def writeStatsReports(path, data):
+	if not os.path.exists(path):
+		os.mkdir(path)
+	
 	with open(path, "w") as f:
 		for repost in data:
 			for stats in repost:

@@ -1,6 +1,6 @@
 import csv
 import os.path
-
+import json
 import matplotlib.pyplot as plt
 
 
@@ -12,9 +12,12 @@ class Line:
 		self.y = []
 
 
-def drawLine(dirName, *data: Line):
+def drawLine(dirName, dirData, *data: Line):
 	if not os.path.exists(dirName):
 		os.mkdir(dirName)
+	if not os.path.exists(dirData):
+		os.mkdir(dirData)
+	
 	bigName = data[0].name
 	for line in data:
 		# x = line.x  #
@@ -23,6 +26,13 @@ def drawLine(dirName, *data: Line):
 		x = [tmp * 60 / 1000 for tmp in line.x]
 		y = line.y  # 
 		name = line.name
+		
+		with open(dirData + "/" + line.name + "-yaxis", "w") as f:
+			f.write(json.dumps(y))
+		
+		with open(dirData + "/" + line.name + "-xaxis", "w") as f:
+			f.write(json.dumps(x))
+		
 		plt.plot(x, y, label=name)
 	plt.legend()
 	plt.savefig(dirName + "/" + bigName)

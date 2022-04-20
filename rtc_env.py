@@ -9,11 +9,13 @@ import time
 import numpy as np
 
 from gcc.main_estimator import mainEstimator
+from gccv2.main_estimator import mainEstimatorV2
 from geminiGCC.main_estimator import mainGeminiEstimator, get_time_ms
 from gym import spaces
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
 from utils.trace import Trace
+from unsafetyDetector import unsafety_detector
 
 sys.path.append(os.path.join(
 	os.path.dirname(os.path.abspath(__file__)), "gym"))
@@ -65,6 +67,7 @@ class GymEnv:
 		
 		self.ruleEstimator = mainEstimator(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		self.geminiEstimator = mainGeminiEstimator(INIT_BANDWIDTH)
+		self.ruleEstimatorV2 = mainEstimatorV2(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		
 		self.lastEstimatorTs = 0
 		self.lastBwe = INIT_BANDWIDTH
@@ -84,6 +87,10 @@ class GymEnv:
 		self.state_dim = 6
 		
 		self.now_trace = Trace()
+		
+		self.safety = True
+		self.lastChoice = "drl"
+		self.unsafety_dector = unsafety_detector()
 	
 	def setAlphaRtcGym(self, trace):
 		"""
@@ -121,6 +128,26 @@ class GymEnv:
 			# if (nowTs - self.lastEstimatorTs) >= 1000:
 			# 	self.lastEstimatorTs = nowTs
 			next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
+		if next_targetRate != 0:
+			self.lastBwe = next_targetRate
+		qos1, qos2, qos3, qos4 = self.calculateNetQosV1()
+		
+		return self.lastBwe, done, qos1, qos2, qos3, qos4, packet_list
+	
+	def testV3(self, targetRate):
+		packet_list, done = self.gym_env.step(targetRate)
+		
+		for pkt in packet_list:
+			self.ruleEstimator.report_states(pkt)
+		
+		next_targetRate = self.ruleEstimator.predictionBandwidth
+		
+		if len(packet_list) > 0:
+			# nowTs = self.ruleEstimator.gcc.currentTimestamp
+			# 调用带宽估计间隔
+			# if (nowTs - self.lastEstimatorTs) >= 1000:
+			# 	self.lastEstimatorTs = nowTs
+			next_targetRate = self.ruleEstimatorV2.get_estimated_bandwidth()
 		if next_targetRate != 0:
 			self.lastBwe = next_targetRate
 		qos1, qos2, qos3, qos4 = self.calculateNetQosV1()
@@ -205,6 +232,80 @@ class GymEnv:
 		                   duration_time_ms=0)
 		self.lastBwe = INIT_BANDWIDTH
 		return [0.0 for _ in range(self.state_dim)]
+	
+	def stepHybird(self, action, interval_time_step):
+		bandwidth_prediction_bps = log_to_linear(action)
+		packet_list = []
+		done = False
+		if self.safety:
+			packet_list, done = self.gym_env.step(bandwidth_prediction_bps)
+		else:
+			bwe_dl = bandwidth_prediction_bps
+			bwe_gcc = self.ruleEstimator.gcc.predictionBandwidth
+			# bwe_gcc, done, qos1, qos2, qos3, qos4, packet_list = self.testV1(bandwidth_prediction_bps)
+			if self.unsafety_dector.change_window != 10 and self.unsafety_dector.change_window != 0:
+				window = self.unsafety_dector.change_window
+				# print("window",window)
+				bandwidth_prediction = bwe_dl * ((10 - window) / 10) + bwe_gcc * (
+						window / 10)
+				packet_list, done = self.gym_env.step(bandwidth_prediction)
+		
+		for pkt in packet_list:
+			self.ruleEstimator.report_states(pkt)
+		
+		next_targetRate = self.ruleEstimator.predictionBandwidth
+		
+		if len(packet_list) > 0:
+			# nowTs = self.ruleEstimator.gcc.currentTimestamp
+			# 调用带宽估计间隔
+			# if (nowTs - self.lastEstimatorTs) >= 1000:
+			# 	self.lastEstimatorTs = nowTs
+			next_targetRate = self.ruleEstimator.get_estimated_bandwidth()
+		
+		# if next_targetRate != 0:
+		# 	self.lastBwe = next_targetRate
+		
+		if self.safety == 0:
+			self.lastBwe = next_targetRate
+		
+		qos1, qos2, qos3, qos4 = self.calculateNetQosV1()
+		
+		for pkt in packet_list:
+			packet_info = PacketInfo()
+			packet_info.payload_type = pkt["payload_type"]
+			packet_info.ssrc = pkt["ssrc"]
+			packet_info.sequence_number = pkt["sequence_number"]
+			packet_info.send_timestamp = pkt["send_time_ms"]
+			packet_info.receive_timestamp = pkt["arrival_time_ms"]
+			packet_info.padding_length = pkt["padding_length"]
+			packet_info.header_length = pkt["header_length"]
+			packet_info.payload_size = pkt["payload_size"]
+			packet_info.bandwidth_prediction = bandwidth_prediction_bps
+			self.packet_record.on_receive(packet_info)
+		
+		# calculate state
+		# cap = self.now_trace.tracePatterns[interval_time_step].capacity * 1000  # bps
+		# in this step/interval , state value
+		states = []
+		receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
+		states.append(liner_to_log(receiving_rate))
+		# states.append(max(receiving_rate / cap, 1))  # 0.0-1.0
+		
+		delay = self.packet_record.calculate_average_delay(interval=self.step_time)
+		# states.append(min(delay / 1000, 2) / 2)  # second , with no base delay
+		states.append(min(delay / 1000, 1))
+		
+		loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
+		states.append(loss_ratio)  # 0.0-1.0
+		
+		latest_prediction = self.packet_record.calculate_latest_prediction()
+		states.append(liner_to_log(latest_prediction))  # 0.0-1.0
+		
+		delta_prediction = abs((bandwidth_prediction_bps - self.lastBwe
+		                        )).squeeze().numpy()  # 原来的是[[x]]现在先压平然后转换成numpy
+		states.append(liner_to_log(delta_prediction))
+		
+		return self.lastBwe, done, qos1, qos2, qos3, qos4, states
 	
 	def step(self, action, interval_time_step):
 		"""

@@ -24,6 +24,14 @@ class aimdType(Enum):
 	NEAR_MAX = "near_max"
 
 
+class bbrType(Enum):
+	START_UP = "start_up"
+	RETREAT = "retreat"
+	RECOVERY = "recovery"
+	INIT = "init"
+	QUIT = "quit"
+
+
 class traceAttr(Enum):
 	def __str__(self):
 		return str(self.value)
