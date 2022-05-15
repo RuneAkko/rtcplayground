@@ -186,7 +186,7 @@ if __name__ == "__main__":
 	pass
 
 # traceFiles = glob.glob(f"./mytraces/ori_traces_preprocess/*.json", recursive=False)
-# # traceFiles = glob.glob(f"./mytraces/special_trace/03.json", recursive=False)
+# # traceFiles = glob.glob(f"./mytraces/special_trace/1000kbps.json", recursive=False)
 #
 # models = "./model/ppo_2021_05_13_01_55_53.pth"
 # for ele in traceFiles:

@@ -163,17 +163,17 @@ def genNewTraceTest():
 
 
 def processSpecialTrace():
-	path = "/mytraces/special_trace/*.json"
-	save_path = "/mytraces/special_trace_preprocess/"
+	path = "/Users/hansenma/mhspion/rtcplayground/mytraces/special_trace/*.json"
+	save_path = "/Users/hansenma/mhspion/rtcplayground/mytraces/special_trace_preprocess/"
 	traceFiles = glob.glob(path,
 	                       recursive=False)
 	for ele in traceFiles:
 		t = Trace(ele)
 		t.readTraceFile()
 		t.processOri()
-		# t.draw(t.genFig(savePath, t.genLine("capacity")))
+		t.savefig(save_path)
 		t.writeTraceFile(save_path)
 
 
 if __name__ == "__main__":
-	pass
+	processSpecialTrace()

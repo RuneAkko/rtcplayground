@@ -9,18 +9,6 @@ from scipy.signal import savgol_filter
 from utils.plotTool import Line
 
 
-class TraceFig(object):
-	
-	def __init__(self):
-		self.title = None
-		self.xLabel = None
-		self.yLabel = None
-		self.x = []
-		self.y = []
-		self.yLineLabel = None
-		self.figSavePath = None
-
-
 class TracePattern(object):
 	def __init__(self):
 		"""
@@ -117,6 +105,12 @@ class Trace(object):
 				tmpTime += 60
 				newTp.append(tmp)
 		self.tracePatterns = newTp
+	
+	def savefig(self, save_path):
+		plt.plot([x.capacity for x in self.tracePatterns])
+		plt.savefig(save_path + self.name)
+		plt.close()
+
 
 # # ======================= fig ============================ #
 # def genLine(self, attr, smooth=False, interval=60) -> Line:
