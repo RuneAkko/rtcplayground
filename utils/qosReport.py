@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os
 
 
 class Curve:
@@ -31,20 +32,22 @@ class Figure:
 		:return:
 		"""
 		self.attr = args
-		self.curves = curves
+		self.curves = list(curves)
 	
 	def xAxisUnit(self, unit):
 		if unit == "second":
 			for index in range(len(self.curves)):
-				self.curves[index] = [tmp * 60 / 1000 for tmp in self.curves[index]]
+				self.curves[index].x = [tmp * 60 / 1000 for tmp in self.curves[index].x]
 	
 	def save(self):
+		if not os.path.exists(self.attr["dir"]):
+			os.makedirs(self.attr["dir"])
 		for ele in self.curves:
-			plt.plot(ele.x, ele.y, ele.attr["shape"], color=ele.attr["color"], label=ele.attr.name)
+			plt.plot(ele.x, ele.y, ele.attr["shape"], color=ele.attr["color"], label=ele.attr["name"])
 		plt.xlabel(self.attr["x-label"])
 		plt.ylabel(self.attr["y-label"])
 		plt.legend()
-		plt.savefig(self.attr["dir"] + "/" + self.attr["file"])
+		plt.savefig(self.attr["dir"] + self.attr["file"])
 		plt.close()
 
 
@@ -74,8 +77,8 @@ class QosReport:
 		self.trace_name = trace.name
 		self.cap = [x.capacity for x in trace.tracePatterns]
 		
-		self.data_dir = "result/" + self.algo + "/" + self.trace_name + "/data"
-		self.fig_dir = "result/" + self.algo + "/" + self.trace_name + "/fig"
+		self.data_dir = "./result/" + self.algo + "/" + self.trace_name + "/data/"
+		self.fig_dir = "./result/" + self.algo + "/" + self.trace_name + "/fig/"
 	
 	def update(self, recv_rate, d, l, lastBwe):
 		self.delay.append(d)

@@ -131,9 +131,9 @@ class GymEnv:
 		self.current_trace.path = trace_path
 		self.current_trace.readTraceFile()
 		self.gymProcess = alphartc_gym.Gym()
-		self.gymProcess.trainReset(trace_path=trace_path,
-		                           report_interval_ms=self.step_time,
-		                           duration_time_ms=0)
+		self.gymProcess.reset(trace_path=trace_path,
+		                      report_interval_ms=self.step_time,
+		                      duration_time_ms=0)
 		return self.current_trace
 	
 	def init4Train(self, path):
@@ -154,9 +154,9 @@ class GymEnv:
 		self.current_trace.readTraceFile()
 		
 		self.gymProcess = alphartc_gym.Gym()
-		self.gymProcess.trainReset(trace_path=trace_path,
-		                           report_interval_ms=self.step_time,
-		                           duration_time_ms=0)
+		self.gymProcess.reset(trace_path=trace_path,
+		                      report_interval_ms=self.step_time,
+		                      duration_time_ms=0)
 		return [0.0 for _ in range(self.state_dim)]
 	
 	def testGccNative(self, targetRate):
