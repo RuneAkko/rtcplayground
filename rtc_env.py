@@ -9,7 +9,7 @@ import time
 import numpy as np
 
 from gcc.main_estimator import GccNativeEstimator
-from gccv2.main_estimator import mainEstimatorV2
+from hrccGCC.BandwidthEstimator_gcc import HrccGCCEstimator
 from geminiGCC.main_estimator import GccGeminiEstimator, get_time_ms
 from gym import spaces
 from utils.utilBackup.packet_info import PacketInfo
@@ -68,7 +68,7 @@ class GymEnv:
 		self.gccEstimator = GccNativeEstimator(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		self.geminiEstimator = GccGeminiEstimator(INIT_BANDWIDTH)
 		# self.ruleEstimatorV2 = mainEstimatorV2(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
-		
+		self.hrccEstimator = HrccGCCEstimator()
 		# ========================= common attr ==================== #
 		
 		self.gymProcess = None
@@ -159,6 +159,21 @@ class GymEnv:
 		                      duration_time_ms=0)
 		return [0.0 for _ in range(self.state_dim)]
 	
+	def testHrccGcc(self, targetRate):
+		packet_list, done = self.gymProcess.step(targetRate)
+		self.updatePktRecord(packet_list)
+		if len(packet_list) > 0:
+			for pkt in packet_list:
+				self.hrccEstimator.report_states(pkt)
+		next_targetRate, _ = self.hrccEstimator.get_estimated_bandwidth()
+		if next_targetRate != 0:
+			self.lastBwe = next_targetRate
+		self.calculateNetQos()
+		# ===============================================
+		self.report.queueDelayDelta.append(self.hrccEstimator.prober_queueDelayDelta)
+		self.report.gamma.append(self.hrccEstimator.gamma1)
+		return self.lastBwe, done, packet_list
+	
 	def testGccNative(self, targetRate):
 		"""
 		用于测试拥塞控制算法在特定 trace 上的表现
@@ -168,7 +183,7 @@ class GymEnv:
 		"""
 		
 		packet_list, done = self.gymProcess.step(targetRate)
-		
+		self.updatePktRecord(packet_list)
 		for pkt in packet_list:
 			self.gccEstimator.report_states(pkt)
 		
