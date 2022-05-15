@@ -54,6 +54,6 @@ class kalman:
 			self.updateEstimate(ele)
 		
 		# if self.useTime > 100:
-		# 	self.reset()
+		# 	self.trainReset()
 		
 		return self.estimate

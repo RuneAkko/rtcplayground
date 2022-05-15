@@ -7,7 +7,7 @@ def get_time_ms():
 	return int(time.time() * 1000)
 
 
-class mainGeminiEstimator:
+class GccGeminiEstimator:
 	def __init__(self, initBwe):
 		self.latest_bandwidth = initBwe
 		self.first_time = get_time_ms()

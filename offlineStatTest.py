@@ -5,8 +5,8 @@ import time
 
 from scipy.signal import savgol_filter
 
-from gcc.main_estimator import mainEstimator
-from geminiGCC.main_estimator import mainGeminiEstimator
+from gcc.main_estimator import GccNativeEstimator
+from geminiGCC.main_estimator import GccGeminiEstimator
 from utils.plotTool import drawLine, Line
 from utils.utilBackup.packet_info import PacketInfo
 from utils.utilBackup.packet_record import PacketRecord
@@ -61,9 +61,9 @@ class testEnv:
 	def setTestEnv(self, tag):
 		self.tag = tag
 		if tag == 0:
-			self.estimator = mainEstimator(INIT_BANDWIDTH)
+			self.estimator = GccNativeEstimator(INIT_BANDWIDTH)
 		else:
-			self.estimator = mainGeminiEstimator(INIT_BANDWIDTH)
+			self.estimator = GccGeminiEstimator(INIT_BANDWIDTH)
 	
 	def test(self, targetRate, stepNum):
 		

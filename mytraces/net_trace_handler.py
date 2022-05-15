@@ -10,11 +10,9 @@ import scipy.stats as st
 from utils.trace import Trace, TracePattern
 
 
-def traceHistFitCap(sample: Trace, figpath):
-	resultTmp = sample.traceName + " " + "best fit\n"
-	
+def traceHistFitCap(sample: Trace, fig_path):
+	resultTmp = sample.name + " " + "best fit\n"
 	x = [x.capacity for x in sample.tracePatterns]
-	# x = savgol_filter(x, 11, 4, mode="nearest")
 	
 	fer = Fitter(list(x), timeout=30)
 	fer.fit(progress=True)
@@ -23,15 +21,18 @@ def traceHistFitCap(sample: Trace, figpath):
 	resultTmp += str(m) + "\n"
 	(name, _), = m.items()
 	resultTmp += str(fer.summary(Nbest=3, plot=True)) + "\n"
-	plt.savefig(figpath + "FitCap " + sample.traceName)
+	plt.savefig(fig_path + "FitCap_" + sample.name)
 	plt.close()
 	return resultTmp
 
 
-def orifit():
-	traceFiles = glob.glob("/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/*.json",
+# preprocessed trace distribution fit
+def ori_distribution_fit():
+	filePattern = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/*.json"
+	traceFiles = glob.glob(filePattern,
 	                       recursive=False)
-	figSavePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/traceFig/"
+	figSavePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/fitFig/"
+	resSavePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/fit_result.txt"
 	
 	result = ""
 	for ele in traceFiles:
@@ -40,28 +41,25 @@ def orifit():
 		res = traceHistFitCap(t, figSavePath)
 		result += res + "\n"
 	
-	with open("/Users/hansenma/mhspion/rtcplayground/mytraces/fit_result.txt", "w") as f:
+	with open(resSavePath, "w") as f:
 		f.write(result)
 
 
-def dealWithTrace(savePath="/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/",
-                  file="/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json"
-                  ):
-	savePath = savePath
-	traceFiles = glob.glob(file,
+# original trace preprocess
+def process_ori_traces():
+	savePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/"
+	filePattern = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces/*.json"
+	traceFiles = glob.glob(filePattern,
 	                       recursive=False)
 	for ele in traceFiles:
 		t = Trace(ele)
 		t.readTraceFile()
-		t.draw(t.genFig(savePath, t.genLine("capacity")))
+		t.processOri()
+		# t.draw(t.genFig(savePath, t.genLine("capacity")))
+		t.writeTraceFile(savePath)
 
 
-# t.preFilter()
-# t.filterForTime()
-# t.writeTraceFile(savePath)
-
-
-def genNewTrace(storePath, trace_num):
+def genTrainTraces(storePath, trace_num):
 	traceDict = {
 		
 		"5G_13mbps": {
@@ -91,7 +89,7 @@ def genNewTrace(storePath, trace_num):
 		
 	}
 	
-	time_step = 240  # ms
+	time_step = 240  # ms, todo: 探究步长影响
 	
 	trace_size = 1500  # trace 为 300 second
 	
@@ -130,7 +128,7 @@ def genNewTrace(storePath, trace_num):
 			aver = np.mean(capData)
 			data = []
 			
-			for ele in capData:
+			for ele in capData:  # todo: 探究过滤策略
 				if ele < 0:
 					continue
 				if ele < aver / 3:
@@ -144,87 +142,38 @@ def genNewTrace(storePath, trace_num):
 				traceP.capacity = ele
 				trace.tracePatterns.append(traceP)
 			
-			trace.preFilter()
-			trace.filterForTime()
+			trace.processOri()
 			trace.writeTraceFile(storePath)
 
 
 def genNewTraceTrain():
-	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/"
-	if not os.path.exists(newTracePath):
-		os.mkdir(newTracePath)
+	path = "/Users/hansenma/mhspion/rtcplayground/mytraces/trainTraces/"
+	if not os.path.exists(path):
+		os.mkdir(path)
 	trace_num = 100
-	genNewTrace(newTracePath, trace_num)
+	genTrainTraces(path, trace_num)
 
 
 def genNewTraceTest():
-	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/"
-	if not os.path.exists(newTracePath):
-		os.mkdir(newTracePath)
+	path = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/"
+	if not os.path.exists(path):
+		os.mkdir(path)
 	trace_num = 1
-	genNewTrace(newTracePath, trace_num)
+	genTrainTraces(path, trace_num)
 
 
-def genSpecialTraceTest():
-	newTracePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/specialTrace/"
-	if not os.path.exists(newTracePath):
-		os.mkdir(newTracePath)
-	template = {
-		"type": "video",
-		"downlink": {},
-		"uplink": {
-			"trace_pattern": [
-				{
-					"duration": 50 * 1000,
-					"capacity": 1000,
-				},
-				{
-					"duration": 50 * 1000,
-					"capacity": 2.5 * 1000,
-				},
-				{
-					"duration": 50 * 1000,
-					"capacity": 500,
-				},
-				{
-					"duration": 50 * 1000,
-					"capacity": 1000,
-				},
-			]
-		}
-	}
-	json_str = json.dumps(template, indent=1)
-	with open(newTracePath + "steady_change_trace.json", "w") as f:
-		f.write(json_str)
-	template = {
-		"type": "video",
-		"downlink": {},
-		"uplink": {
-			"trace_pattern": [
-				{
-					"duration": 50 * 1000,
-					"capacity": 1000,
-				},
-				{
-					"duration": 50 * 1000,
-					"capacity": 2.5 * 1000,
-				},
-				{
-					"duration": 50 * 1000,
-					"capacity": 500,
-				},
-				{
-					"duration": 50 * 1000,
-					"capacity": 1000,
-				},
-			]
-		}
-	}
+def processSpecialTrace():
+	path = "/mytraces/special_trace/*.json"
+	save_path = "/mytraces/special_trace_preprocess/"
+	traceFiles = glob.glob(path,
+	                       recursive=False)
+	for ele in traceFiles:
+		t = Trace(ele)
+		t.readTraceFile()
+		t.processOri()
+		# t.draw(t.genFig(savePath, t.genLine("capacity")))
+		t.writeTraceFile(save_path)
 
 
 if __name__ == "__main__":
-	genSpecialTraceTest()
-# f = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces/*.json"
-# ff = "/Users/hansenma/mhspion/rtcplayground/mytraces/testTraces"
-# dealWithTrace(ff, f)
-# genNewTraceTest()
+	pass

@@ -14,7 +14,7 @@ class Signal(Enum):
 
 
 class interfaceState(Enum):
-	INIT = "init"
+	INIT = "init4Test"
 	REPORT = "report"
 	ESTIMATE = "estimate"
 
@@ -28,7 +28,7 @@ class bbrType(Enum):
 	START_UP = "start_up"
 	RETREAT = "retreat"
 	RECOVERY = "recovery"
-	INIT = "init"
+	INIT = "init4Test"
 	QUIT = "quit"
 
 

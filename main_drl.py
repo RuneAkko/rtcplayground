@@ -31,7 +31,7 @@ def main():
 		os.makedirs(data_path)
 	
 	env = GymEnv()
-	env.setTraces("./mytraces/trainTraces")
+	env.init4Train("./mytraces/trainTraces")
 	storage = Storage()  # used for storing data
 	ppo = PPO(state_dim, action_dim, exploration_param, lr, betas, gamma, K_epochs, ppo_clip)
 	
@@ -45,10 +45,10 @@ def main():
 		
 		while interval_time_step < update_interval:
 			done = False
-			state = torch.Tensor(env.reset())
+			state = torch.Tensor(env.trainReset())
 			while not done and interval_time_step < update_interval:  # for one train trace
 				action = ppo.select_action(state, storage)
-				state, reward, done, _ = env.step(action, interval_time_step)
+				state, reward, done, _ = env.testDrl(action, interval_time_step)
 				state = torch.Tensor(state)
 				storage.rewards.append(reward)
 				storage.is_terminals.append(done)

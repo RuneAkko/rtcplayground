@@ -92,6 +92,7 @@ class PacketRecord:
 		Calulate the average delay in the last interval time,
 		interval=0 means based on the whole packets
 		The unit of return value: ms
+		return value is queue delay
 		'''
 		delay_list = self._get_result_list(interval=interval, key='delay')
 		if delay_list:

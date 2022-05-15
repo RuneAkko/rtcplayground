@@ -6,7 +6,7 @@ from .gcc_twcc_estimator import GCC
 BaseDelay = 200  # ms, 假设传播时延
 
 
-class mainEstimator(object):
+class GccNativeEstimator(object):
 	def __init__(self, initialBwe, maxBwe, minBwe):
 		self.pktsRecord = pktRecord(BaseDelay)
 		self.pktsRecord.reset()

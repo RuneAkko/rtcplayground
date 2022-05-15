@@ -27,7 +27,7 @@ class Overdetector:
 		
 		self.state = kBwNormal
 		
-		self.T = None
+		self.T = 0
 	
 	# 更新过载的阈值
 	def __overuse_update_threshold(self, modified_offset, cur_ts):

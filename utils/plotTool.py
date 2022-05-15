@@ -2,6 +2,7 @@ import csv
 import os.path
 import json
 import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter
 
 
 class Line:
@@ -10,9 +11,61 @@ class Line:
 		self.attrName = None
 		self.x = []
 		self.y = []
+		self.y_label = None
 
 
-def drawLine(dirName, dirData, *data: Line):
+def drawLineV2(dirName, fileName, *data: Line, smooth=False, ):
+	"""
+	画单个算法的表现
+	:param dirName:
+	:param data:
+	:return:
+	"""
+	if not os.path.exists(dirName):
+		os.mkdir(dirName)
+	
+	for line in data:
+		# x = line.x  #
+		# x time axis, default interval-60ms
+		# turn to second
+		# x = [tmp * 60 / 1000 for tmp in line.x]
+		x = line.x
+		y = line.y  #
+		linename = line.name
+		if linename == "link capacity":
+			line_color = '#FA7F6F'
+			line_shape = '-'
+			plt.plot(x, y, line_shape, color=line_color, label=linename)
+		elif linename == "estimate bandwidth":
+			line_color = '#FFBE7A'
+			line_shape = '-'
+			if smooth:
+				y = savgol_filter(y, 21, 1, mode="nearest")
+			plt.plot(x, y, line_shape, color=line_color, label=linename)
+		elif linename == "recv rate":
+			line_color = '#8ECFC9'
+			line_shape = '--'
+			if smooth:
+				y = savgol_filter(y, 11, 4, mode="nearest")
+			plt.plot(x, y, line_shape, color=line_color, label=linename)
+		elif linename == "threshold(gamma)":
+			line_color = '#FA7F6F'
+			line_shape = '--'
+			plt.plot(x, y, line_shape, color=line_color, label=linename)
+			plt.plot(x, [-1 * t for t in y], line_shape, color=line_color)
+		else:
+			line_color = '#82B0D2'
+			line_shape = '-'
+			plt.plot(x, y, line_shape, color=line_color, label=linename)
+	
+	# plt.ylabel(data[0].y_label)
+	plt.xlabel("time(second)")
+	plt.legend()
+	plt.savefig(dirName + "/" + fileName)
+	plt.close()
+
+
+def drawLine(dirName, dirData, x_label, y_label, *data: Line):
 	if not os.path.exists(dirName):
 		os.mkdir(dirName)
 	if not os.path.exists(dirData):
@@ -33,7 +86,12 @@ def drawLine(dirName, dirData, *data: Line):
 		with open(dirData + "/" + line.name + "-xaxis", "w") as f:
 			f.write(json.dumps(x))
 		
+		# name = name.split("-")[]
+		
 		plt.plot(x, y, label=name)
+	
+	plt.xlabel(x_label)
+	plt.ylabel(y_label)
 	plt.legend()
 	plt.savefig(dirName + "/" + bigName)
 	plt.show()

@@ -8,7 +8,7 @@ packet traces to some features and leveraging the PPO algorithms, this example t
 1. Fetch all submodule
 
 ```bash
-git submodule init
+git submodule init4Test
 git submodule update
 ```
 

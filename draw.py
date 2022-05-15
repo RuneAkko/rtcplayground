@@ -28,7 +28,7 @@ def draw_state(record_action, record_state, path):
 
 def draw_module(model, data_path, max_num_steps=1000):
 	env = GymEnv()
-	env.setTraces("./mytraces/testTraces")
+	env.init4Train("./mytraces/testTraces")
 	record_reward = []
 	record_state = []
 	record_action = []
@@ -38,10 +38,10 @@ def draw_module(model, data_path, max_num_steps=1000):
 	model.random_action = False
 	while time_step < max_num_steps:
 		done = False
-		state = torch.Tensor(env.reset())
+		state = torch.Tensor(env.trainReset())
 		while not done:
 			action, _, _ = model.forward(state)
-			state, reward, done, _ = env.step(action)
+			state, reward, done, _ = env.testDrl(action)
 			state = torch.Tensor(state)
 			record_state.append(state)
 			record_reward.append(reward)

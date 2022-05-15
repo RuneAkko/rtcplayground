@@ -85,6 +85,8 @@ class unsafety_detector:  #
 	def detect_big_delay(self):
 		self.change_window = 10
 		self.state = 0
-# ## 用于测试
-# self.state=1
-# self.change_window=10
+	
+	def getState(self):
+		if self.state == 1:
+			return True
+		return False
