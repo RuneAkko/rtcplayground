@@ -1,4 +1,5 @@
 import collections
+from gcc.rate_calculator import rateCalculator
 
 kMinNumDeltas = 60
 threshold_gain_ = 4
@@ -26,7 +27,7 @@ class HrccGCCEstimator(object):
 		self.smoothed_delay_list = collections.deque([])
 		
 		self.state = 'Hold'
-		self.last_bandwidth_estimation = 300 * 1000  #
+		self.last_bandwidth_estimation = 300 * 1000  # bps, 300 kbps
 		self.avg_max_bitrate_kbps_ = -1
 		self.var_max_bitrate_kbps_ = -1
 		self.rate_control_region_ = "kRcMaxUnknown"
@@ -43,6 +44,8 @@ class HrccGCCEstimator(object):
 		self.now_ms = -1
 		
 		self.prober_queueDelayDelta = 0
+		self.rateHat = 0
+		self.rateCalculator = rateCalculator()
 	
 	# reset estimator according to rtc_env_gcc
 	def reset(self):
@@ -91,6 +94,8 @@ class HrccGCCEstimator(object):
 		self.now_ms = packet_info.receive_timestamp  # use the arrival time of the last packet as the system time
 		
 		self.packets_list.append(packet_info)
+		self.rateCalculator.updateV2(packet_info.size, packet_info.receive_timestamp)
+		self.rateHat = self.rateCalculator.rateHat
 	
 	def get_estimated_bandwidth(self) -> int:
 		'''
@@ -368,17 +373,18 @@ class HrccGCCEstimator(object):
 		'''
 		Determine the final bandwidth estimation
 		'''
-		estimated_throughput = 0
-		for pkt in self.packets_list:
-			estimated_throughput += pkt.size
-		if len(self.packets_list) == 0:
-			estimated_throughput_bps = 0
-		else:
-			time_delta = self.now_ms - self.packets_list[0].receive_timestamp
-			time_delta = max(time_delta, Time_Interval)
-			estimated_throughput_bps = 1000 * 8 * estimated_throughput / time_delta
+		# estimated_throughput = 0
+		# for pkt in self.packets_list:
+		# 	estimated_throughput += pkt.size
+		# if len(self.packets_list) == 0:
+		# 	estimated_throughput_bps = 0
+		# else:
+		# 	time_delta = self.now_ms - self.packets_list[0].receive_timestamp
+		# 	time_delta = max(time_delta, Time_Interval)
+		# 	estimated_throughput_bps = 1000 * 8 * estimated_throughput / time_delta
+		# estimated_throughput_kbps = estimated_throughput_bps / 1000
+		estimated_throughput_bps = self.rateHat
 		estimated_throughput_kbps = estimated_throughput_bps / 1000
-		
 		troughput_based_limit = 3 * estimated_throughput_bps + 10
 		'''
 		Calculate the standard deviation of the maximum throughput

@@ -48,3 +48,34 @@ class rateCalculator:
 			return
 		
 		self.rateHat = self.sumBytes * 8 * 1000 / deltaTime  # bps
+	
+	def updateV2(self, size, arrival):
+		tmpPkt = {
+			"size": size,
+			"arrival": arrival,
+		}
+		
+		self.history.append(tmpPkt)
+		self.sumBytes += tmpPkt["size"]
+		
+		deadTime = tmpPkt["arrival"] - self.windowSize
+		
+		delIndex = 0
+		for ele in self.history:
+			if ele["arrival"] >= deadTime:
+				break
+			delIndex += 1
+			self.sumBytes -= ele["size"]
+		
+		self.history = self.history[delIndex:]
+		
+		if len(self.history) == 0:
+			self.rateHat = 0
+			return
+		
+		deltaTime = tmpPkt["arrival"] - self.history[0]["arrival"]
+		if deltaTime == 0:
+			self.rateHat = self.sumBytes * 8
+			return
+		
+		self.rateHat = self.sumBytes * 8 * 1000 / deltaTime  # bps
