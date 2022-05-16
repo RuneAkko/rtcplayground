@@ -10,6 +10,7 @@ import numpy as np
 
 from gcc.main_estimator import GccNativeEstimator
 from hrccGCC.BandwidthEstimator_gcc import HrccGCCEstimator
+from hrccGCCKalman.BandwidthEstimator_gcc import HrccGCCEstimatorWithKalman
 from geminiGCC.main_estimator import GccGeminiEstimator, get_time_ms
 from gym import spaces
 from utils.utilBackup.packet_info import PacketInfo
@@ -69,6 +70,7 @@ class GymEnv:
 		self.geminiEstimator = GccGeminiEstimator(INIT_BANDWIDTH)
 		# self.ruleEstimatorV2 = mainEstimatorV2(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		self.hrccEstimator = HrccGCCEstimator()
+		self.hrccEstimatorWithKal = HrccGCCEstimatorWithKalman()
 		# ========================= common attr ==================== #
 		
 		self.gymProcess = None
@@ -172,6 +174,21 @@ class GymEnv:
 		# ===============================================
 		self.report.queueDelayDelta.append(self.hrccEstimator.prober_queueDelayDelta)
 		self.report.gamma.append(self.hrccEstimator.gamma1)
+		return self.lastBwe, done, packet_list
+	
+	def testHrccGccWithKal(self, targetRate):
+		packet_list, done = self.gymProcess.step(targetRate)
+		self.updatePktRecord(packet_list)
+		if len(packet_list) > 0:
+			for pkt in packet_list:
+				self.hrccEstimatorWithKal.report_states(pkt)
+		next_targetRate, _ = self.hrccEstimatorWithKal.get_estimated_bandwidth()
+		if next_targetRate != 0:
+			self.lastBwe = next_targetRate
+		self.calculateNetQos()
+		# ===============================================
+		self.report.queueDelayDelta.append(self.hrccEstimatorWithKal.prober_queueDelayDelta)
+		self.report.gamma.append(self.hrccEstimatorWithKal.gamma1)
 		return self.lastBwe, done, packet_list
 	
 	def testGccNative(self, targetRate):
