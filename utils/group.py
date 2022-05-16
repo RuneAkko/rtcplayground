@@ -9,6 +9,7 @@ class pktGroup:
 		self.sendTs = 0  # 该组最后包的发送时刻
 		
 		self.rtt = 0  # 该组最后包的 rtt
+		self.size = 0
 	
 	def addPkt(self, pkt: pktInfo):
 		self.pkts.append(pkt)
@@ -16,3 +17,4 @@ class pktGroup:
 		self.arrivalTs = pkt.receive_timestamp_ms
 		self.sendTs = pkt.send_timestamp_ms
 		self.rtt = pkt.rtt
+		self.size += pkt.size

@@ -12,6 +12,7 @@ from .rtt_calculator import rttCalculator
 from .state_machine import StateMachine
 from .trendline_filter import TrendLineFilter
 from .kalman_filter import kalman
+from .kalman_filter_V2 import kalmanV2
 import numpy as np
 
 MaxGroupNum = 60  # 每个 interval 纳入考虑的最大范围；pkt group 的个数；
@@ -47,6 +48,7 @@ class GCC(object):
 		self.arrivalFilter = ArrivalFilter(GroupBurstInterval)
 		self.tlf = TrendLineFilter()
 		self.klm = kalman()
+		self.klm2 = kalmanV2()
 		self.filterType = filterType
 		
 		self.overUseDetector = OveruseDetector()
@@ -121,21 +123,23 @@ class GCC(object):
 		self.arrivalFilter.groupNum = len(self.arrivalFilter.pktGroups)
 		self.inflightGroups = []
 		
-		delayDelta, arrivalTs = self.arrivalFilter.measured_groupDelay_deltas()
+		delayDelta, arrivalTs, sendDelta, sizeDelta = self.arrivalFilter.measured_groupDelay_deltas()
 		logging.info("[in this interval] delayDelta from group is [%s]", delayDelta)
 		
 		if self.filterType == "tlf":
 			queueDelayDelta = self.tlf.updateTrendLine(delayDelta, arrivalTs)
 		elif self.filterType == "kal":
 			queueDelayDelta = self.klm.run(delayDelta, self.currentTimestamp)
+		elif self.filterType == "kalv2":
+			offset, num_of_deltas = self.klm2.run(delayDelta, sendDelta, sizeDelta, self.overUseDetector.lastSignal)
 		else:
 			queueDelayDelta = np.mean(delayDelta)
 		
-		if queueDelayDelta is None:
-			queueDelayDelta = 0
+		# if queueDelayDelta is None:
+		# 	queueDelayDelta = 0
 		
-		if queueDelayDelta is None:
-			queueDelayDelta = 0
+		# if queueDelayDelta is None:
+		# 	queueDelayDelta = 0
 		
 		# gradient 没变化，带宽估计不变
 		# if queueDelayDelta == 0:
@@ -147,6 +151,9 @@ class GCC(object):
 			                             min(self.tlf.numCount, self.minGroupNum)
 			logging.info("estimateQueueDelayDuration [%s] = queueDelayDelta [%s] * numCount[%s]",
 			             estimateQueueDelayDuration, queueDelayDelta, min(self.tlf.numCount, self.minGroupNum))
+			self.queueDelayDelta = estimateQueueDelayDuration
+		elif self.filterType == "kalv2":
+			estimateQueueDelayDuration = min(num_of_deltas, 60) * offset
 			self.queueDelayDelta = estimateQueueDelayDuration
 		else:
 			estimateQueueDelayDuration = queueDelayDelta

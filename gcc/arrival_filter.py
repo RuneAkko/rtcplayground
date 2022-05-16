@@ -54,11 +54,16 @@ class ArrivalFilter:
 	
 	def measured_groupDelay_deltas(self):
 		delayGradients = []
+		send_delta_ts = []
+		size_delta = []
 		arrivalTimes = [self.pktGroups[0].arrivalTs]
 		last = self.pktGroups[0]
 		for group in self.pktGroups[1:]:
-			measurement = (group.arrivalTs - last.arrivalTs) - (group.sendTs - last.sendTs)
+			send_delta = (group.sendTs - last.sendTs)
+			measurement = (group.arrivalTs - last.arrivalTs) - send_delta
 			last = group
 			delayGradients.append(measurement)
 			arrivalTimes.append(group.arrivalTs)
-		return delayGradients, arrivalTimes
+			send_delta_ts.append(send_delta)
+			size_delta.append(group.size - last.size)
+		return delayGradients, arrivalTimes, send_delta_ts, size_delta

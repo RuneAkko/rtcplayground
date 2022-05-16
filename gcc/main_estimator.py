@@ -7,13 +7,13 @@ BaseDelay = 200  # ms, 假设传播时延
 
 
 class GccNativeEstimator(object):
-	def __init__(self, initialBwe, maxBwe, minBwe):
+	def __init__(self, initialBwe, maxBwe, minBwe, filterType):
 		self.pktsRecord = pktRecord(BaseDelay)
 		self.pktsRecord.reset()
 		
 		self.state = interfaceState.INIT
 		
-		self.gcc = GCC(initialBwe)
+		self.gcc = GCC(initialBwe, filterType)
 		
 		# last interval value or initial value, bps, int
 		self.predictionBandwidth = initialBwe
