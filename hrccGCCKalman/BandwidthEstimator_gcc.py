@@ -1,6 +1,6 @@
 import collections
 from gcc.rate_calculator import rateCalculator
-from gcc.kalman_filter import kalman
+from .kalman_filter_V2 import kalmanV2
 
 kMinNumDeltas = 60
 threshold_gain_ = 4
@@ -48,7 +48,7 @@ class HrccGCCEstimatorWithKalman(object):
 		self.rateHat = 0
 		self.rateCalculator = rateCalculator()
 		
-		self.kalmanFilter = kalman()
+		self.kalmanFilter = kalmanV2()
 	
 	# reset estimator according to rtc_env_gcc
 	def reset(self):
@@ -136,14 +136,16 @@ class HrccGCCEstimatorWithKalman(object):
 			return self.last_bandwidth_estimation, False
 		
 		# 2. Calculate the packet gradient
-		send_time_delta_list, _, _, delay_gradient_list = self.compute_deltas_for_pkt_group(pkt_group_list)
+		send_time_delta_list, _, group_size_delta_list, delay_gradient_list = self.compute_deltas_for_pkt_group(
+			pkt_group_list)
 		
 		# # 3. Calculate the trendline
 		# trendline = self.trendline_filter(delay_gradient_list, pkt_group_list)
 		# if trendline == None:
 		# 	return self.last_bandwidth_estimation, False
-		queueDelayDelta = self.kalmanFilter.run(delay_gradient_list, self.now_ms)
-		
+		offset, num_of_delta = self.kalmanFilter.run(delay_gradient_list, send_time_delta_list, group_size_delta_list,
+		                                             self.overuse_flag)
+		queueDelayDelta = min(num_of_delta, 60) * offset
 		# 4. Determine the current network status
 		self.overuse_detector(queueDelayDelta, sum(send_time_delta_list))
 		
