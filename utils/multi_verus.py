@@ -26,6 +26,20 @@ class CdfCurve:
 		self.x = ecdf(self.y)
 
 
+def cal_mean_qos(reports):
+	"""
+	mobile-trace
+	wire-trace
+	stable-trace
+	fluctuate-trace
+	
+	todo: when settle down trace type
+	:param reports:
+	:return:
+	"""
+	pass
+
+
 def draw_cdf_fig(reports):
 	"""
 	比较不同算法在同一trace下的使用
@@ -76,3 +90,22 @@ def draw_cdf_fig(reports):
 		c.update(value.receiveRate)
 		recv_fig.curves.append(c)
 	recv_fig.save()
+	
+	# loss-cdf
+	loss_fig_dict = {
+		"x-label": "CDF",
+		"y-label": "loss ratio(%)",
+		"dir": fig_save_path,
+		"file": "loss-cdf"
+	}
+	loss_fig = Figure(recv_fig_dict, [])
+	for index, value in enumerate(reports):
+		c_dict = {
+			"name": value.algo,
+			"color": colors[index],
+			"shape": shapes[index]
+		}
+		c = CdfCurve(c_dict)
+		c.update(value.loss)
+		loss_fig.curves.append(c)
+	loss_fig.save()

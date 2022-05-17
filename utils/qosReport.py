@@ -234,8 +234,9 @@ class QosReport:
 		self.object_U = math.log(np.mean(self.receiveRate) / 1000.0) - (3.0 / 7.0) * math.log(np.mean(self.delay))
 	
 	def printResult(self):
-		res_dict = {}
+		res_list = []
 		"""
+		algo_name
 		util
 		average_delay
 		50th_delay
@@ -246,6 +247,12 @@ class QosReport:
 		qos_l
 		qos
 		"""
+		res_list = [self.util, self.d_aver, self.d_50, self.d_95, self.loss, self.qos_u, self.qos_d, self.qos_l,
+		            self.qos]
+		with open(self.data_dir + "qos_result", "w") as f:
+			res = self.algo + " & " + self.util + " & " + self.d_aver + " & " + self.d_50 + " & " + self.d_95 + " & " + self.loss + " & " + self.qos_u + " & " + self.qos_d + " & " + self.qos_l + " & " + self.qos + " \\ "
+			f.write(res)
+		return res_list
 	
 	def calculateQos(self):
 		self.d_aver = round(np.mean(self.delay), 2)
@@ -255,7 +262,7 @@ class QosReport:
 		self.d_min = round(np.min(self.delay), 2)
 		self.l_aver = round(np.mean(self.loss), 2)
 		
-		self.util = self.utilsCal()
+		self.util = round(self.utilsCal(), 2)
 		
 		self.qos_u = round(100 * self.util, 2)
 		
