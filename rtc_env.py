@@ -66,8 +66,8 @@ class GymEnv:
 		self.packet_record = PacketRecord()
 		
 		# ========================= cc algo attr ==================== #
-		filter_type = ["tlf", "kal", "kalv2"]
-		self.gccEstimator = GccNativeEstimator(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS, filter_type[2])
+		filter_type = ["tlf", "kal", "kalv2", "none"]
+		self.gccEstimator = GccNativeEstimator(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS, filter_type[-1])
 		self.geminiEstimator = GccGeminiEstimator(INIT_BANDWIDTH)
 		# self.ruleEstimatorV2 = mainEstimatorV2(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		self.hrccEstimator = HrccGCCEstimator()

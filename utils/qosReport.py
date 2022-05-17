@@ -229,13 +229,24 @@ class QosReport:
 		# u
 		# print("util: %s", self.util)
 		# print("delay: %s", self.d_aver / 1000.0)
-		self.object_U = math.log(np.mean(self.receiveRate) / 1000.0) - (3.0 / 7.0) * math.log(self.d_aver)
+		self.object_U = math.log(np.mean(self.receiveRate) / 1000.0) - (3.0 / 7.0) * math.log(np.mean(self.delay))
 	
 	def printResult(self):
-		pass
+		res_dict = {}
+		"""
+		util
+		average_delay
+		50th_delay
+		95th_delay
+		loss
+		qos_u
+		qos_d
+		qos_l
+		qos
+		"""
 	
 	def calculateQos(self):
-		self.d_aver = np.mean(self.delay)
+		self.d_aver = round(np.mean(self.delay), 2)
 		self.d_50 = round(np.median(self.delay), 2)
 		self.d_95 = round(np.percentile(self.delay, 95), 2)
 		self.d_max = round(np.max(self.delay), 2)
