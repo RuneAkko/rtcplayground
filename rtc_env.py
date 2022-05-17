@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import glob
+import math
 import os
 import random
 import sys
@@ -61,7 +62,7 @@ def get_time_ms():
 
 
 class GymEnv:
-	def __init__(self, step_time=60, state_dim=6):
+	def __init__(self, step_time=60, state_dim=6, k_up=0.0087, k_down=0.039):
 		self.packet_record = PacketRecord()
 		
 		# ========================= cc algo attr ==================== #
@@ -70,7 +71,7 @@ class GymEnv:
 		self.geminiEstimator = GccGeminiEstimator(INIT_BANDWIDTH)
 		# self.ruleEstimatorV2 = mainEstimatorV2(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		self.hrccEstimator = HrccGCCEstimator()
-		self.hrccEstimatorWithKal = HrccGCCEstimatorWithKalman()
+		self.hrccEstimatorWithKal = HrccGCCEstimatorWithKalman(k_up=k_up, k_down=k_down)
 		# ========================= common attr ==================== #
 		
 		self.gymProcess = None
@@ -174,6 +175,7 @@ class GymEnv:
 		# ===============================================
 		self.report.queueDelayDelta.append(self.hrccEstimator.prober_queueDelayDelta)
 		self.report.gamma.append(self.hrccEstimator.gamma1)
+		# ===============================================
 		return self.lastBwe, done, packet_list
 	
 	def testHrccGccWithKal(self, targetRate):
@@ -189,6 +191,8 @@ class GymEnv:
 		# ===============================================
 		self.report.queueDelayDelta.append(self.hrccEstimatorWithKal.prober_queueDelayDelta)
 		self.report.gamma.append(self.hrccEstimatorWithKal.gamma1)
+		# ===============================================
+		
 		return self.lastBwe, done, packet_list
 	
 	def testGccNative(self, targetRate):

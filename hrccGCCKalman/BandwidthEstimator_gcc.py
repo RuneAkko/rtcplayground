@@ -17,7 +17,7 @@ Time_Interval = 200
 
 
 class HrccGCCEstimatorWithKalman(object):
-	def __init__(self):
+	def __init__(self, k_up, k_down):
 		self.packets_list = []
 		self.packet_group = []
 		self.first_group_complete_time = -1
@@ -49,6 +49,10 @@ class HrccGCCEstimatorWithKalman(object):
 		self.rateCalculator = rateCalculator()
 		
 		self.kalmanFilter = kalmanV2()
+		
+		# =============
+		self.k_up_ = k_up
+		self.k_down_ = k_down
 	
 	# reset estimator according to rtc_env_gcc
 	def reset(self):
@@ -324,9 +328,9 @@ class HrccGCCEstimatorWithKalman(object):
 			self.last_update_threshold_ms = now_ms
 			return
 		if abs(modified_trend) < self.gamma1:
-			k = k_down_
+			k = self.k_down_
 		else:
-			k = k_up_
+			k = self.k_up_
 		kMaxTimeDeltaMs = 100
 		time_delta_ms = min(now_ms - self.last_update_threshold_ms, kMaxTimeDeltaMs)
 		self.gamma1 += k * (abs(modified_trend) - self.gamma1) * time_delta_ms

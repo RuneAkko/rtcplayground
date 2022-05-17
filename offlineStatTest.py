@@ -13,11 +13,11 @@ from utils.utilBackup.packet_record import PacketRecord
 from utils.trace import Trace
 
 
-def writeStatsReports(path, data):
-	if not os.path.exists(path):
-		os.mkdir(path)
-	
-	with open(path, "w") as f:
+def writeStatsReports(file, data):
+	# if not os.path.exists(path):
+	# 	os.mkdir(path)
+	with open(file, "w") as f:
+		f.write("begin\n")
 		for repost in data:
 			for stats in repost:
 				stat = json.dumps(stats)

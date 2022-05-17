@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import os
+import numpy as np
+import math
 
 
 class Curve:
@@ -71,6 +73,24 @@ class QosReport:
 		
 		# ======================== drl metric #
 		self.reward = []
+		
+		# ================ optimal metric
+		self.object_U = 0.0
+		
+		# ================ qos metric
+		self.util = 0.0
+		self.d_aver = 0.0
+		self.d_50 = 0.0
+		self.d_95 = 0.0
+		self.d_max = 0.0
+		self.d_min = 0.0
+		self.l_aver = 0.0
+		
+		self.cut_num = 0
+		self.qos_u = 0.0
+		self.qos_d = 0.0
+		self.qos_l = 0.0
+		self.qos = 0.0
 	
 	def init(self, algo_name, trace):
 		self.algo = algo_name
@@ -204,3 +224,43 @@ class QosReport:
 	
 	def draw_reward_fig(self):
 		pass
+	
+	def calculateU(self):
+		# u
+		# print("util: %s", self.util)
+		# print("delay: %s", self.d_aver / 1000.0)
+		self.object_U = math.log(np.mean(self.receiveRate) / 1000.0) - (3.0 / 7.0) * math.log(self.d_aver)
+	
+	def printResult(self):
+		pass
+	
+	def calculateQos(self):
+		self.d_aver = np.mean(self.delay)
+		self.d_50 = round(np.median(self.delay), 2)
+		self.d_95 = round(np.percentile(self.delay, 95), 2)
+		self.d_max = round(np.max(self.delay), 2)
+		self.d_min = round(np.min(self.delay), 2)
+		self.l_aver = round(np.mean(self.loss), 2)
+		
+		self.util = self.utilsCal()
+		
+		self.qos_u = round(100 * self.util, 2)
+		
+		if self.d_max - self.d_min == 0:
+			self.qos_d = 100
+		else:
+			self.qos_d = round(100 * (self.d_max - self.d_95) / (self.d_max - self.d_min), 2)
+		
+		self.qos_l = round(100 * (1 - self.l_aver), 2)
+		
+		self.qos = round(0.35 * self.qos_u + 0.15 * self.qos_d + 0.5 * self.qos_l, 2)
+	
+	def utilsCal(self):
+		utils = []
+		length = min(len(self.receiveRate), len(self.cap))
+		for index in range(length):
+			if self.receiveRate[index] >= self.cap[index]:
+				utils.append(1)
+			else:
+				utils.append(float(self.receiveRate[index]) / float(self.cap[index]))
+		return np.mean(utils)
