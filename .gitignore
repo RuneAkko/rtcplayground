@@ -8,6 +8,7 @@ data/
 gym/
 mytraces/trainTraces/
 mytraces/traceFig
+mytraces/realtrace
 nohup.out
 fig/
 train.log

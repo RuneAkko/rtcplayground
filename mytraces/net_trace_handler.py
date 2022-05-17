@@ -175,5 +175,52 @@ def processSpecialTrace():
 		t.writeTraceFile(save_path)
 
 
+def processRealTrace():
+	path = "/Users/hansenma/mhspion/rtcplayground/mytraces/realtrace/data"
+	fig_save_path = "/Users/hansenma/mhspion/rtcplayground/mytraces/realtrace/fig/"
+	format_save_path = "/Users/hansenma/mhspion/rtcplayground/mytraces/realtrace/preprocess/"
+	
+	if not os.path.exists(format_save_path):
+		os.makedirs(format_save_path)
+	if not os.path.exists(fig_save_path):
+		os.makedirs(fig_save_path)
+	traces = []
+	for _, _, files in os.walk(path):
+		for file in files:
+			"""
+			format:
+			t_start_ms kbps
+			t_stop_ms kbps
+			"""
+			name_ = file.split("_")
+			name = name_[1].split(".")[0]
+			t = Trace()
+			t.name = name
+			with open(path + "/" + file) as f:
+				tmp_1 = f.readline()
+				tmp_2 = f.readline()
+				while tmp_2:
+					first = tmp_1.split(" ")
+					t1, b1 = first[0], first[1]
+					second = tmp_2.split(" ")
+					t2 = second[0]
+					
+					tp = TracePattern()
+					tp.duration = float(t2) - float(t1)
+					tp.capacity = float(b1)
+					
+					t.tracePatterns.append(tp)
+					
+					tmp_1 = f.readline()
+					tmp_2 = f.readline()
+				traces.append(t)
+	
+	for trace in traces:
+		trace.processOri()
+		trace.writeTraceFile(format_save_path)
+		trace.savefig(fig_save_path)
+
+
 if __name__ == "__main__":
-	processSpecialTrace()
+	# processSpecialTrace()
+	processRealTrace()
