@@ -13,12 +13,8 @@ class unsafety_detector:  #
 		self.last_recv = None
 		self.last_send = None
 		
-		self.last_result = 0
+		self.last_res = 0
 	
-	# # ## 用于测试
-	# self.state=1
-	# self.change_window=10
-	# print("测试,state 恒定")
 	def receive(self, recv, send):
 		if self.last_recv == None:
 			self.last_recv = recv
@@ -39,17 +35,16 @@ class unsafety_detector:  #
 			self.index += 1
 			self.last_D = self.last_D * 1 / 2 + delta_ms
 			self.gamma = self.gamma + self.k * (self.last_D - self.gamma)
-			# print(delta_ms)
 			
-			if self.state == 1:
-				if self.last_D > self.gamma and self.last_result >= 0:
+			if self.state == 1:  # drl
+				if self.last_D > self.gamma and self.last_res >= 0:
 					self.change_window -= 1
 					if self.change_window == 0:
 						self.state = 0
-			else:
-				if self.last_D <= self.gamma and self.last_result <= 0:
+			else:  # gcc
+				if self.last_D <= self.gamma and self.last_res <= 0:
 					self.change_window -= 1
-				elif self.last_D > self.gamma and self.last_result >= 0:
+				elif self.last_D > self.gamma and self.last_res >= 0:
 					self.change_window += 1
 					self.change_window = min(10, self.change_window)
 					if self.change_window == 0:
@@ -57,15 +52,7 @@ class unsafety_detector:  #
 			
 			if self.change_window == 0:
 				self.change_window = 10
-			# print("state",self.state)
-			self.last_result = self.last_D - self.gamma
-		
-		# ## 用于测试
-		# self.state=1
-		# self.change_window=10
-		# print("state",self.state)
-		# if self.state==0:
-		#     print(self.change_window)
+			self.last_res = self.last_D - self.gamma
 		return self.state
 	
 	def reset(self):

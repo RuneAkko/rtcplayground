@@ -69,7 +69,6 @@ class GymEnv:
 		filter_type = ["tlf", "kal", "kalv2", "none"]
 		self.gccEstimator = GccNativeEstimator(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS, filter_type[-1])
 		self.geminiEstimator = GccGeminiEstimator(INIT_BANDWIDTH)
-		# self.ruleEstimatorV2 = mainEstimatorV2(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS)
 		self.hrccEstimator = HrccGCCEstimator()
 		self.hrccEstimatorWithKal = HrccGCCEstimatorWithKalman(k_up=k_up, k_down=k_down)
 		# ========================= common attr ==================== #
@@ -97,9 +96,10 @@ class GymEnv:
 		self.state_dim = state_dim
 		
 		# ========================== hybird attr ============================== #
-		self.safety = True
+		self.safety = 1
 		self.lastChoice = "drl"
 		self.unsafe_detector = unsafety_detector()
+		self.hy_gcc = 0
 	
 	def updatePktRecord(self, packet_list):
 		for pkt in packet_list:
@@ -285,43 +285,43 @@ class GymEnv:
 		lastBwe = self.packet_record.calculate_latest_prediction()
 		self.report.update(recv_rate, delay, loss, lastBwe)
 	
-	def stepHybird(self, action, interval_time_step):
+	def testHy(self, action):
 		bandwidth_prediction_bps = log_to_linear(action)
-		packet_list = []
-		done = False
-		if self.safety:
+		
+		# choose bwe
+		if self.safety == 1:  # use drl action
 			packet_list, done = self.gymProcess.step(bandwidth_prediction_bps)
 		else:
+			# use gcc action
 			bwe_dl = bandwidth_prediction_bps
-			bwe_gcc = self.gccEstimator.gcc.predictionBandwidth
-			# bwe_gcc, done, qos1, qos2, qos3, qos4, packet_list = self.testGccNative(bandwidth_prediction_bps)
+			bwe_gcc = self.hy_gcc
+			
+			bandwidth_prediction = bwe_gcc
+			# change_window 未归零,
 			if self.unsafe_detector.change_window != 10 and self.unsafe_detector.change_window != 0:
 				window = self.unsafe_detector.change_window
-				# print("window",window)
+				# gcc-bwe shift to drl-bwe
 				bandwidth_prediction = bwe_dl * ((10 - window) / 10) + bwe_gcc * (
 						window / 10)
-				packet_list, done = self.gymProcess.step(bandwidth_prediction)
+			packet_list, done = self.gymProcess.step(bandwidth_prediction)
 		
-		for pkt in packet_list:
-			self.gccEstimator.report_states(pkt)
-		
-		next_targetRate = self.gccEstimator.predictionBandwidth
-		
+		# invoke gcc
+		next_hy_gcc = 0
 		if len(packet_list) > 0:
-			# nowTs = self.gccEstimator.gcc.currentTimestamp
-			# 调用带宽估计间隔
-			# if (nowTs - self.lastEstimatorTs) >= 1000:
-			# 	self.lastEstimatorTs = nowTs
-			next_targetRate = self.gccEstimator.get_estimated_bandwidth()
+			for pkt in packet_list:
+				self.hrccEstimator.report_states(pkt)
+			next_hy_gcc, _ = self.hrccEstimator.get_estimated_bandwidth()
 		
-		# if next_targetRate != 0:
-		# 	self.lastBwe = next_targetRate
+		if next_hy_gcc != 0:
+			self.hy_gcc = next_hy_gcc
 		
 		if self.safety == 0:
-			self.lastBwe = next_targetRate
+			bandwidth_prediction_bps = self.hy_gcc
 		
-		qos1, qos2, qos3, qos4 = self.calculateNetQosV1()
+		if self.lastBwe == INIT_BANDWIDTH:  # drl init bwe is not 300 kbps
+			self.lastBwe = bandwidth_prediction_bps
 		
+		self.calculateNetQos()
 		for pkt in packet_list:
 			packet_info = PacketInfo()
 			packet_info.payload_type = pkt["payload_type"]
@@ -336,28 +336,15 @@ class GymEnv:
 			self.packet_record.on_receive(packet_info)
 			self.unsafe_detector.receive(packet_info.receive_timestamp, packet_info.send_timestamp)
 		
-		# calculate state
-		# cap = self.current_trace.tracePatterns[interval_time_step].capacity * 1000  # bps
-		# in this testDrl/interval , state value
-		states = []
-		receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
-		states.append(liner_to_log(receiving_rate))
-		# states.append(max(receiving_rate / cap, 1))  # 0.0-1.0
-		
-		delay = self.packet_record.calculate_average_delay(interval=self.step_time)
-		# states.append(min(delay / 1000, 2) / 2)  # second , with no base delay
-		states.append(min(delay / 1000, 1))
-		
-		loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
-		states.append(loss_ratio)  # 0.0-1.0
-		
-		latest_prediction = self.packet_record.calculate_latest_prediction()
-		states.append(liner_to_log(latest_prediction))  # 0.0-1.0
-		
-		delta_prediction = abs((bandwidth_prediction_bps - self.lastBwe
-		                        )).squeeze().numpy()  # 原来的是[[x]]现在先压平然后转换成numpy
-		states.append(liner_to_log(delta_prediction))
-		if delay > 1000:
+		if self.safety == 1:
+			delta_prediction = abs((bandwidth_prediction_bps - self.lastBwe
+			                        )).squeeze().numpy()  # 原来的是[[x]]现在先压平然后转换成numpy
+		else:
+			delta_prediction = abs((bandwidth_prediction_bps - self.lastBwe
+			                        ))  # 单位是百分比
+		state = self.updateDrlMetric(delta_prediction)
+		self.lastBwe = bandwidth_prediction_bps
+		if self.report.delay[-1] > 1000:
 			self.unsafe_detector.detect_big_delay()
 		self.safety = self.unsafe_detector.getState()
-		return self.lastBwe, done, qos1, qos2, qos3, qos4, states
+		return state, done
