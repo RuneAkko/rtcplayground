@@ -106,6 +106,8 @@ class QosReport:
 		self.targetRate.append(lastBwe)
 		self.receiveRate.append(recv_rate)
 	
+	# def getDrlState(self):
+	
 	def draw_rate_fig(self):
 		targetDict = {
 			"name": self.algo,

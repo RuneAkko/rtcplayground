@@ -26,8 +26,8 @@ sys.path.append(os.path.join(
 import alphartc_gym
 
 UNIT_M = 1000000
-MAX_BANDWIDTH_MBPS = 10
-MIN_BANDWIDTH_MBPS = 0.01
+MAX_BANDWIDTH_MBPS = 20
+MIN_BANDWIDTH_MBPS = 0.08
 LOG_MAX_BANDWIDTH_MBPS = np.log(MAX_BANDWIDTH_MBPS)
 LOG_MIN_BANDWIDTH_MBPS = np.log(MIN_BANDWIDTH_MBPS)
 
@@ -116,10 +116,13 @@ class GymEnv:
 			self.packet_record.on_receive(packet_info)
 	
 	def updateDrlMetric(self, delta_prediction):
-		# state
-		state = [liner_to_log(self.report.receiveRate[-1]), min(self.report.delay[-1] / 1000), 1, self.report.loss[-1],
-		         self.packet_record.calculate_latest_prediction(),
-		         liner_to_log(delta_prediction)]  # recv; delay; loss; last-bwe; delta-bwe
+		state = []  # recv; delay; loss; last-bwe; delta-bwe
+		state.append(liner_to_log(self.report.receiveRate[-1]))
+		
+		state.append(min(self.report.delay[-1] / 1000.0, 1))
+		state.append(self.report.loss[-1])
+		state.append(liner_to_log(self.packet_record.calculate_latest_prediction()))
+		state.append(liner_to_log(delta_prediction))
 		
 		# reward function
 		# reward = states[0] - 2.5 * states[1] - 5 * states[2] - 0.02 * states[4]
