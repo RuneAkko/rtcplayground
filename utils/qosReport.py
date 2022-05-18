@@ -252,11 +252,11 @@ class QosReport:
 		qos_l
 		qos
 		"""
-		res_list = [self.util, self.d_aver, self.d_50, self.d_95, self.loss, self.qos_u, self.qos_d, self.qos_l,
+		res_list = [self.util, self.d_aver, self.d_50, self.d_95, self.l_aver, self.qos_u, self.qos_d, self.qos_l,
 		            self.qos]
 		res_list = [str(x) for x in res_list]
 		with open(self.data_dir + "qos_result", "w") as f:
-			res = self.algo + " & " + " & ".join(res_list) + " \\ "
+			res = self.algo + " & " + " & ".join(res_list) + " \\\\ "
 			f.write(res)
 		return res_list
 	
@@ -283,10 +283,11 @@ class QosReport:
 	
 	def utilsCal(self):
 		utils = []
-		length = min(len(self.receiveRate), len(self.cap))
+		recv_rate_kbps = [x / 1000 for x in self.receiveRate]
+		length = min(len(recv_rate_kbps), len(self.cap))
 		for index in range(length):
-			if self.receiveRate[index] >= self.cap[index]:
+			if recv_rate_kbps[index] >= self.cap[index]:
 				utils.append(1)
 			else:
-				utils.append(float(self.receiveRate[index]) / float(self.cap[index]))
+				utils.append(float(recv_rate_kbps[index]) / float(self.cap[index]))
 		return np.mean(utils)
