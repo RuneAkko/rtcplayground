@@ -93,12 +93,18 @@ class QosReport:
 		self.qos = 0.0
 	
 	def init(self, algo_name, trace):
-		self.algo = algo_name.value
+		# algo_name should be str
+		self.algo = algo_name
 		self.trace_name = trace.name
 		self.cap = [x.capacity for x in trace.tracePatterns]
 		
 		self.data_dir = "./result/" + self.algo + "/" + self.trace_name + "/data/"
 		self.fig_dir = "./result/" + self.algo + "/" + self.trace_name + "/fig/"
+		
+		if not os.path.exists(self.fig_dir):
+			os.makedirs(self.fig_dir)
+		if not os.path.exists(self.data_dir):
+			os.makedirs(self.data_dir)
 	
 	def update(self, recv_rate, d, l, lastBwe):
 		self.delay.append(d)
@@ -234,7 +240,6 @@ class QosReport:
 		self.object_U = math.log(np.mean(self.receiveRate) / 1000.0) - (3.0 / 7.0) * math.log(np.mean(self.delay))
 	
 	def printResult(self):
-		res_list = []
 		"""
 		algo_name
 		util
@@ -249,8 +254,9 @@ class QosReport:
 		"""
 		res_list = [self.util, self.d_aver, self.d_50, self.d_95, self.loss, self.qos_u, self.qos_d, self.qos_l,
 		            self.qos]
+		res_list = [str(x) for x in res_list]
 		with open(self.data_dir + "qos_result", "w") as f:
-			res = self.algo + " & " + self.util + " & " + self.d_aver + " & " + self.d_50 + " & " + self.d_95 + " & " + self.loss + " & " + self.qos_u + " & " + self.qos_d + " & " + self.qos_l + " & " + self.qos + " \\ "
+			res = self.algo + " & " + " & ".join(res_list) + " \\ "
 			f.write(res)
 		return res_list
 	

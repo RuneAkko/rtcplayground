@@ -30,12 +30,20 @@ class CdfCurve:
 			self.y = [tmp / 1000 for tmp in self.y]
 
 
-def cal_mean_qos(reports):
+def cal_mean_qos_real():
+	pass
+
+
+def cal_mean_qos():
 	"""
+	
 	mobile-trace
 	wire-trace
+	
 	stable-trace
 	fluctuate-trace
+	
+	real-world-trace
 	:param reports:
 	:return:
 	"""

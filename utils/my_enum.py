@@ -51,3 +51,10 @@ class ccAlgo(Enum):
 	RTSHY = "RTSHybird"  # drl mix hrcc
 	GEMINI = "Gemini"  # gcc-gemini magic trendline
 	RTSRule = "RTSRule"  # todo: bbr
+
+
+class traceSetType(Enum):
+	WIRED = "WIRED"
+	LTE = "LTE"
+	REAL = "REAL"  # 427
+	REAL_SPECIAL = "REAL_SPECIAL"  # 2,11,45,9
