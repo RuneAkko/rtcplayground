@@ -24,6 +24,10 @@ class CdfCurve:
 		ecdf = sm.distributions.ECDF(data)
 		self.y = np.linspace(min(data), max(data))
 		self.x = ecdf(self.y)
+	
+	def yAxisUnit(self, unit):
+		if unit == "kbps":
+			self.y = [tmp / 1000 for tmp in self.y]
 
 
 def cal_mean_qos(reports):
@@ -32,26 +36,22 @@ def cal_mean_qos(reports):
 	wire-trace
 	stable-trace
 	fluctuate-trace
-	
-	todo: when settle down trace type
 	:param reports:
 	:return:
 	"""
 	pass
 
 
-def draw_cdf_fig(reports):
+def draw_cdf_fig(reports, compare_tag):
 	"""
 	比较不同算法在同一trace下的使用
 	:return:
 	"""
 	# fig_save_path
-	fig_save_path = "./result/cdf/" + reports[0].trace_name + "/"
-	# deep-blue,green,red,yellow
-	colors = ["#2F7FC1", "#96C37D", "#D8383A", "#F3D266"]
-	shapes = ["-", "--", "-.", ":"]
-	
-	# loss-cdf
+	fig_save_path = "./result/cdf/" + compare_tag + "/" + reports[0].trace_name + "/"
+	# deep-blue,green,red,yellow,purple
+	colors = ["#2F7FC1", "#96C37D", "#D8383A", "#F3D266", "#C497B2"]
+	shapes = ["-", "--", "-.", ":", "-"]
 	
 	# delay-cdf
 	delay_fig_dict = {
@@ -88,6 +88,7 @@ def draw_cdf_fig(reports):
 		}
 		c = CdfCurve(c_dict)
 		c.update(value.receiveRate)
+		c.yAxisUnit("kbps")
 		recv_fig.curves.append(c)
 	recv_fig.save()
 	
@@ -98,7 +99,7 @@ def draw_cdf_fig(reports):
 		"dir": fig_save_path,
 		"file": "loss-cdf"
 	}
-	loss_fig = Figure(recv_fig_dict, [])
+	loss_fig = Figure(loss_fig_dict, [])
 	for index, value in enumerate(reports):
 		c_dict = {
 			"name": value.algo,

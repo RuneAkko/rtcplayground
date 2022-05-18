@@ -93,7 +93,7 @@ class QosReport:
 		self.qos = 0.0
 	
 	def init(self, algo_name, trace):
-		self.algo = algo_name
+		self.algo = algo_name.value
 		self.trace_name = trace.name
 		self.cap = [x.capacity for x in trace.tracePatterns]
 		

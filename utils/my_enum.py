@@ -42,3 +42,12 @@ class traceAttr(Enum):
 
 class myFilePath(Enum):
 	ORI_TRACE = "./mytraces/ori_traces"
+
+
+class ccAlgo(Enum):
+	GCC = "Gcc"  # gcc-native with filter-type-none
+	HRCC = "Hrcc"  # gcc-hrcc-trendline
+	RTSDRL = "RTSDrl"  # drl-07
+	RTSHY = "RTSHybird"  # drl mix hrcc
+	GEMINI = "Gemini"  # gcc-gemini magic trendline
+	RTSRule = "RTSRule"  # todo: bbr
