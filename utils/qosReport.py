@@ -69,7 +69,8 @@ class QosReport:
 		# =========================gcc native 、 gemini gcc metric===================== #
 		self.queueDelayDelta = []  # interval:
 		self.gamma = []  # interval:
-		self.trend = []  # interval: -1(decrease),0(hold),1(near_max),2(max_unknown)
+		self.aimd = []  # interval: -1(decrease),0(hold),1(near_max),2(max_unknown)
+		self.queueDelayDelta_m = []  # 测量值(真实值）
 		
 		# ======================== drl metric #
 		self.reward = []
@@ -204,12 +205,17 @@ class QosReport:
 		
 		:return:
 		"""
-		gamma_dict = {
-			"name": "threshold",
+		gamma_dict_1 = {
+			"name": "threshold positive",
 			"color": "#FA7F6F",  # red
 			"shape": "-"
 		}
-		gamma_positive, gamma_negative = Curve(gamma_dict), Curve(gamma_dict)
+		gamma_dict_2 = {
+			"name": "threshold negative",
+			"color": "#FA7F6F",  # red
+			"shape": "-"
+		}
+		gamma_positive, gamma_negative = Curve(gamma_dict_1), Curve(gamma_dict_2)
 		gamma_positive.update(self.gamma)
 		gamma_negative.update([x * (-1) for x in self.gamma])
 		
@@ -293,3 +299,10 @@ class QosReport:
 			else:
 				utils.append(float(recv_rate_kbps[index]) / float(self.cap[index]))
 		return np.mean(utils)
+	
+	def draw_special_01(self):
+		"""
+		绘制两种时延梯度估计方案的估计结果，并与真实时延变化量比较
+		:return:
+		"""
+		pass

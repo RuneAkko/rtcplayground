@@ -69,7 +69,7 @@ class GymEnv:
 		filter_type = ["tlf", "kal", "kalv2", "none"]
 		self.gccEstimator = GccNativeEstimator(INIT_BANDWIDTH, MAX_BANDWIDTH_MBPS, MIN_BANDWIDTH_MBPS, filter_type[-1])
 		self.geminiEstimator = GccGeminiEstimator(INIT_BANDWIDTH)
-		self.hrccEstimator = HrccGCCEstimator()
+		self.hrccEstimator = HrccGCCEstimator(k_up=k_up, k_down=k_down)
 		self.hrccEstimatorWithKal = HrccGCCEstimatorWithKalman(k_up=k_up, k_down=k_down)
 		# ========================= common attr ==================== #
 		
@@ -177,6 +177,7 @@ class GymEnv:
 		self.calculateNetQos()
 		# ===============================================
 		self.report.queueDelayDelta.append(self.hrccEstimator.prober_queueDelayDelta)
+		self.report.queueDelayDelta_m.append(self.hrccEstimator.prober_queueDelayDelta_m)
 		self.report.gamma.append(self.hrccEstimator.gamma1)
 		# ===============================================
 		return self.lastBwe, done, packet_list
@@ -193,6 +194,7 @@ class GymEnv:
 		self.calculateNetQos()
 		# ===============================================
 		self.report.queueDelayDelta.append(self.hrccEstimatorWithKal.prober_queueDelayDelta)
+		self.report.queueDelayDelta_m.append(self.hrccEstimatorWithKal.prober_queueDelayDelta_m)
 		self.report.gamma.append(self.hrccEstimatorWithKal.gamma1)
 		# ===============================================
 		

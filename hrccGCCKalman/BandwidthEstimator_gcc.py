@@ -44,7 +44,8 @@ class HrccGCCEstimatorWithKalman(object):
 		self.last_update_threshold_ms = -1
 		self.now_ms = -1
 		
-		self.prober_queueDelayDelta = 0
+		self.prober_queueDelayDelta = 0  # 一个 interval 内的所有估计值
+		self.prober_queueDelayDelta_m = 0  # 一个 interval 内的所有测量值
 		self.rateHat = 0
 		self.rateCalculator = rateCalculator()
 		
@@ -143,6 +144,7 @@ class HrccGCCEstimatorWithKalman(object):
 		send_time_delta_list, _, group_size_delta_list, delay_gradient_list = self.compute_deltas_for_pkt_group(
 			pkt_group_list)
 		
+		self.prober_queueDelayDelta_m = delay_gradient_list[-1]
 		# # 3. Calculate the trendline
 		# trendline = self.trendline_filter(delay_gradient_list, pkt_group_list)
 		# if trendline == None:
@@ -150,6 +152,7 @@ class HrccGCCEstimatorWithKalman(object):
 		offset, num_of_delta = self.kalmanFilter.run(delay_gradient_list, send_time_delta_list, group_size_delta_list,
 		                                             self.overuse_flag)
 		queueDelayDelta = min(num_of_delta, 60) * offset
+		self.prober_queueDelayDelta = queueDelayDelta
 		# 4. Determine the current network status
 		self.overuse_detector(queueDelayDelta, sum(send_time_delta_list))
 		
@@ -294,7 +297,6 @@ class HrccGCCEstimatorWithKalman(object):
 			return
 		
 		# modified_trend = trendline * min(self.num_of_deltas_, kMinNumDeltas) * threshold_gain_
-		self.prober_queueDelayDelta = queueDelayDelta
 		if queueDelayDelta > self.gamma1:
 			if self.time_over_using == -1:
 				self.time_over_using = ts_delta / 2

@@ -16,7 +16,7 @@ Time_Interval = 200
 
 
 class HrccGCCEstimator(object):
-	def __init__(self):
+	def __init__(self, k_up, k_down):
 		self.packets_list = []
 		self.packet_group = []
 		self.first_group_complete_time = -1
@@ -43,9 +43,14 @@ class HrccGCCEstimator(object):
 		self.last_update_threshold_ms = -1
 		self.now_ms = -1
 		
-		self.prober_queueDelayDelta = 0
+		self.prober_queueDelayDelta = 0  # 一个 interval 内的所有估计值
+		self.prober_queueDelayDelta_m = 0  # 一个 interval 内的所有测量值
 		self.rateHat = 0
 		self.rateCalculator = rateCalculator()
+		
+		# =============
+		self.k_up_ = k_up
+		self.k_down_ = k_down
 	
 	# reset estimator according to rtc_env_gcc
 	def reset(self):
@@ -135,8 +140,10 @@ class HrccGCCEstimator(object):
 		# 2. Calculate the packet gradient
 		send_time_delta_list, _, _, delay_gradient_list = self.compute_deltas_for_pkt_group(pkt_group_list)
 		
+		self.prober_queueDelayDelta_m = delay_gradient_list[-1]
 		# 3. Calculate the trendline
 		trendline = self.trendline_filter(delay_gradient_list, pkt_group_list)
+		self.prober_queueDelayDelta = trendline
 		if trendline == None:
 			return self.last_bandwidth_estimation, False
 		
@@ -318,9 +325,9 @@ class HrccGCCEstimator(object):
 			self.last_update_threshold_ms = now_ms
 			return
 		if abs(modified_trend) < self.gamma1:
-			k = k_down_
+			k = self.k_down_
 		else:
-			k = k_up_
+			k = self.k_up_
 		kMaxTimeDeltaMs = 100
 		time_delta_ms = min(now_ms - self.last_update_threshold_ms, kMaxTimeDeltaMs)
 		self.gamma1 += k * (abs(modified_trend) - self.gamma1) * time_delta_ms
