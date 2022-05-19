@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+from utils.my_enum import traceSetType
 from utils.qosReport import QosReport, Curve, Figure
 import statsmodels.api as sm
 
@@ -30,24 +30,58 @@ class CdfCurve:
 			self.y = [tmp / 1000 for tmp in self.y]
 
 
-def cal_mean_qos_real():
-	pass
+def read_qos_file(file):
+	with open(file, "r") as f:
+		qos_ = f.readline()
+		qos = [x.strip() for x in qos_.split("&")]
+		qos = qos[1:]
+		qos[-1] = qos[-1].replace("\\\\", "")
+		res = [float(x) for x in qos]
+		print(res)
+		return res
 
 
-def cal_mean_qos():
+def cal_mean_qos(algo_names, net_type):
 	"""
 	
 	mobile-trace
 	wire-trace
 	
-	stable-trace
-	fluctuate-trace
+	# stable-trace
+	# fluctuate-trace
 	
 	real-world-trace
 	:param reports:
 	:return:
 	"""
-	pass
+	mobile_trace = ["4G_500kbps", "4G_700kbps", "4G_3mbps", "5G_12mbps", "5G_13mbps"]
+	wired_trace = ["WIRED_35mbps", "WIRED_200kbps", "WIRED_900kbps"]
+	
+	if net_type == traceSetType.WIRED:
+		for ele in algo_names:
+			print("=" * 4)
+			print(ele.value)
+			sum_list = []
+			save_file = "./result/" + ele.value + "/" + net_type.value + "/mean_"
+			for t in wired_trace:
+				data_file = "./result/" + ele.value + "/" + t + "/data/qos_result"
+				sum_list = np.sum([sum_list, read_qos_file(data_file)], axis=0)
+			mean_list = [round(x / len(wired_trace), 2) for x in sum_list]
+			print(mean_list)
+			print("=" * 4)
+	
+	if net_type == traceSetType.LTE:
+		for ele in algo_names:
+			print("=" * 4)
+			print(ele.value)
+			sum_list = []
+			save_file = "./result/" + ele.value + "/" + net_type.value + "/mean_"
+			for t in mobile_trace:
+				data_file = "./result/" + ele.value + "/" + t + "/data/qos_result"
+				sum_list = np.sum([sum_list, read_qos_file(data_file)], axis=0)
+			mean_list = [round(x / len(mobile_trace), 2) for x in sum_list]
+			print(mean_list)
+			print("=" * 4)
 
 
 def draw_cdf_fig(reports, compare_tag):

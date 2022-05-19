@@ -51,6 +51,7 @@ class ccAlgo(Enum):
 	RTSHY = "RTSHybird"  # drl mix hrcc
 	GEMINI = "Gemini"  # gcc-gemini magic trendline
 	RTSRule = "RTSRule"  # todo: bbr
+	HRCC_KAL = "Hrcc_kalman"  #
 
 
 class traceSetType(Enum):

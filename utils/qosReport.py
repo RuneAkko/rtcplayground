@@ -92,7 +92,7 @@ class QosReport:
 		self.qos_l = 0.0
 		self.qos = 0.0
 	
-	def init(self, algo_name, trace):
+	def init(self, algo_name, trace, isSaved=True):
 		# algo_name should be str
 		self.algo = algo_name
 		self.trace_name = trace.name
@@ -101,6 +101,8 @@ class QosReport:
 		self.data_dir = "./result/" + self.algo + "/" + self.trace_name + "/data/"
 		self.fig_dir = "./result/" + self.algo + "/" + self.trace_name + "/fig/"
 		
+		if not isSaved:
+			return
 		if not os.path.exists(self.fig_dir):
 			os.makedirs(self.fig_dir)
 		if not os.path.exists(self.data_dir):
