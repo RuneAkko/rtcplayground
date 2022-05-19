@@ -262,7 +262,7 @@ class QosReport:
 		"""
 		res_list = [self.util, self.d_aver, self.d_50, self.d_95, self.l_aver, self.qos_u, self.qos_d, self.qos_l,
 		            self.qos]
-		print(res_list)
+		# print(res_list)
 		res_list = [str(x) for x in res_list]
 		with open(self.data_dir + "qos_result", "w") as f:
 			res = self.algo + " & " + " & ".join(res_list) + " \\\\ "

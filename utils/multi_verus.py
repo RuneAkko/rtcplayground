@@ -54,8 +54,10 @@ def cal_mean_qos(algo_names, net_type):
 	:param reports:
 	:return:
 	"""
-	mobile_trace = ["4G_500kbps", "4G_700kbps", "4G_3mbps", "5G_12mbps", "5G_13mbps"]
-	wired_trace = ["WIRED_35mbps", "WIRED_200kbps", "WIRED_900kbps"]
+	mobile_trace = ["4G_500kbps", "4G_700kbps", "4G_3mbps", "WIRED_200kbps", "WIRED_900kbps"]
+	# "5G_12mbps", "5G_13mbps",
+	# "WIRED_35mbps"
+	wired_trace = ["WIRED_200kbps", "WIRED_900kbps"]
 	
 	if net_type == traceSetType.WIRED:
 		for ele in algo_names:
@@ -67,7 +69,10 @@ def cal_mean_qos(algo_names, net_type):
 				data_file = "./result/" + ele.value + "/" + t + "/data/qos_result"
 				sum_list = np.sum([sum_list, read_qos_file(data_file)], axis=0)
 			mean_list = [round(x / len(wired_trace), 2) for x in sum_list]
-			print(mean_list)
+			
+			res_list = [str(x) for x in mean_list]
+			res = ele.value + " & " + " & ".join(res_list) + " \\\\ "
+			print(res)
 			print("=" * 4)
 	
 	if net_type == traceSetType.LTE:
@@ -80,7 +85,9 @@ def cal_mean_qos(algo_names, net_type):
 				data_file = "./result/" + ele.value + "/" + t + "/data/qos_result"
 				sum_list = np.sum([sum_list, read_qos_file(data_file)], axis=0)
 			mean_list = [round(x / len(mobile_trace), 2) for x in sum_list]
-			print(mean_list)
+			res_list = [str(x) for x in mean_list]
+			res = ele.value + " & " + " & ".join(res_list) + " \\\\ "
+			print(res)
 			print("=" * 4)
 
 
