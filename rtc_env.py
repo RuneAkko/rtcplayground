@@ -227,7 +227,7 @@ class GymEnv:
 		# =================================
 		self.report.queueDelayDelta.append(self.gccEstimator.gcc.queueDelayDelta)
 		self.report.gamma.append(self.gccEstimator.gcc.overUseDetector.adaptiveThreshold.thresholdGamma)
-		self.report.trend.append(self.gccEstimator.gcc.rateController.digLog)
+		# self.report.trend.append(self.gccEstimator.gcc.rateController.digLog)
 		
 		return self.lastBwe, done, packet_list
 	

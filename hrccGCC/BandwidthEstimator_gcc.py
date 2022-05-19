@@ -112,7 +112,8 @@ class HrccGCCEstimator(object):
 		if flag == True:
 			self.packets_list = []
 		self.last_bandwidth_estimation = bandwidth_estimation
-		return bandwidth_estimation, self.overuse_flag
+		# self.last_bandwidth_estimation = BWE_by_delay
+		return self.last_bandwidth_estimation, self.overuse_flag
 	
 	def get_inner_estimation(self):
 		BWE_by_delay, flag = self.get_estimated_bandwidth_by_delay()
