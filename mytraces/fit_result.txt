@@ -1,0 +1,28 @@
+5G_12mbps best fit
+{'johnsonsu': {'a': 0.9215147046775445, 'b': 1.028930427539219, 'loc': 15020.883261543553, 'scale': 1489.2664050417795}}
+            sumsquare_error          aic           bic  kl_div
+johnsonsu      3.826059e-08  2838.514523 -21938.765695     inf
+foldcauchy     4.317439e-08  2378.501224 -21834.548950     inf
+cauchy         4.399028e-08  2402.653914 -21824.167396     inf
+
+4G_700kbps best fit
+{'dweibull': {'c': 1.425999818712874, 'loc': 648.7758308425668, 'scale': 230.88861573132255}}
+          sumsquare_error          aic           bic  kl_div
+dweibull         0.000197  1517.090668 -25416.921175     inf
+beta             0.000197  1513.566758 -25406.775499     inf
+gennorm          0.000197  1513.037772 -25413.027746     inf
+
+4G_500kbps best fit
+{'gennorm': {'beta': 1.8152067740166147, 'loc': 498.00520817233917, 'scale': 265.4762586756537}}
+           sumsquare_error          aic           bic  kl_div
+gennorm           0.000409  1511.325645 -24102.690402     inf
+dweibull          0.000409  1517.685535 -24102.586071     inf
+exponnorm         0.000409  1503.095749 -24102.413365     inf
+
+4G_3mbps best fit
+{'rayleigh': {'loc': -403.85196271362327, 'scale': 3152.3062735940803}}
+          sumsquare_error          aic           bic  kl_div
+rayleigh     3.162247e-07  2031.041493 -19943.095489     inf
+maxwell      3.214992e-07  2048.126645 -19927.943082     inf
+norm         3.330462e-07  2103.714975 -19895.620748     inf
+

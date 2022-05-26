@@ -45,13 +45,13 @@ class myFilePath(Enum):
 
 
 class ccAlgo(Enum):
-	GCC = "Gcc"  # gcc-native with filter-type-none
+	GCC = "GCCmyself"  # gcc-native with filter-type-none
 	HRCC = "RTSRule"  # gcc-hrcc-trendline
 	RTSDRL = "RTSDrl"  # drl-07
 	RTSHY = "RTSHybird"  # drl mix hrcc
-	GEMINI = "Gemini"  # gcc-gemini magic trendline
+	GEMINI = "GCCGEMINI"  # gcc-gemini magic trendline
 	RTSRule = "RTSRulev2"  # todo: bbr
-	HRCC_KAL = "Hrcc_kalman"  #
+	HRCC_KAL = "HRCCkalman"  #
 
 
 class traceSetType(Enum):

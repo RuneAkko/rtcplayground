@@ -21,6 +21,12 @@ def traceHistFitCap(sample: Trace, fig_path):
 	resultTmp += str(m) + "\n"
 	(name, _), = m.items()
 	resultTmp += str(fer.summary(Nbest=3, plot=True)) + "\n"
+	
+	ax = plt.gca()
+	ax.ticklabel_format(style='sci', scilimits=(-1, 2), axis='y')
+	plt.xlabel("capacity/kbps")
+	plt.ylabel("probability density function")
+	
 	plt.savefig(fig_path + "FitCap_" + sample.name)
 	plt.close()
 	return resultTmp
@@ -28,7 +34,7 @@ def traceHistFitCap(sample: Trace, fig_path):
 
 # preprocessed trace distribution fit
 def ori_distribution_fit():
-	filePattern = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess/*.json"
+	filePattern = "/Users/hansenma/mhspion/rtcplayground/mytraces/ori_traces_preprocess_2/*.json"
 	traceFiles = glob.glob(filePattern,
 	                       recursive=False)
 	figSavePath = "/Users/hansenma/mhspion/rtcplayground/mytraces/fitFig/"
@@ -223,4 +229,5 @@ def processRealTrace():
 
 if __name__ == "__main__":
 	# processSpecialTrace()
-	processRealTrace()
+	# processRealTrace()
+	ori_distribution_fit()

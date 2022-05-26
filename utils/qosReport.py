@@ -230,7 +230,7 @@ class QosReport:
 		# =========================
 		fig_dict = {
 			"x-label": "time(second)",
-			"y-label": "",
+			"y-label": "queue delay gradient",
 			"dir": self.fig_dir,
 			"file": self.algo + "-" + self.trace_name + "-threshold"
 		}
